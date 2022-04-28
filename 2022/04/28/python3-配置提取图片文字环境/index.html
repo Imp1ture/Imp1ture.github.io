@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="有时候做题misc需要看图片里的文字，比较费眼，遂使用脚本。主要参考：  ZackSockhttps:&#x2F;&#x2F;blog.csdn.net&#x2F;ZackSock&#x2F;article&#x2F;details&#x2F;106172878 安装 Tesseract下载及配置下载链接：https:&#x2F;&#x2F;digi.bib.uni-mannheim.de&#x2F;tesseract&#x2F;一般比较新的就可以。我下载的是这个。  在环境变量中配置 1属性-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python3 配置提取图片文字环境">
+<meta property="og:url" content="http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="有时候做题misc需要看图片里的文字，比较费眼，遂使用脚本。主要参考：  ZackSockhttps:&#x2F;&#x2F;blog.csdn.net&#x2F;ZackSock&#x2F;article&#x2F;details&#x2F;106172878 安装 Tesseract下载及配置下载链接：https:&#x2F;&#x2F;digi.bib.uni-mannheim.de&#x2F;tesseract&#x2F;一般比较新的就可以。我下载的是这个。  在环境变量中配置 1属性-">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/2022-04-28-16-47-21.png">
+<meta property="og:image" content="http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/2022-04-28-16-54-46.png">
+<meta property="article:published_time" content="2022-04-28T08:42:24.000Z">
+<meta property="article:modified_time" content="2022-04-28T08:59:58.921Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/2022-04-28-16-47-21.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>python3 配置提取图片文字环境</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/27/CTFSHOW-MISC-%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&text=python3 配置提取图片文字环境"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&is_video=false&description=python3 配置提取图片文字环境"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=python3 配置提取图片文字环境&body=Check out this article: http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&name=python3 配置提取图片文字环境&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&t=python3 配置提取图片文字环境"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Tesseract"><span class="toc-number">1.</span> <span class="toc-text">安装 Tesseract</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E5%8F%8A%E9%85%8D%E7%BD%AE"><span class="toc-number">1.1.</span> <span class="toc-text">下载及配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AD%E8%A8%80%E5%8C%85"><span class="toc-number">1.2.</span> <span class="toc-text">语言包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%85%B6%E4%BB%96%E5%BA%93"><span class="toc-number">1.3.</span> <span class="toc-text">安装其他库</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%86%E5%88%AB%E5%9B%BE%E7%89%87%E7%A4%BA%E4%BE%8B"><span class="toc-number">2.</span> <span class="toc-text">识别图片示例</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        python3 配置提取图片文字环境
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/" class="leancloud-visitors" data-flag-title="python3 配置提取图片文字环境">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-28T08:42:24.000Z" itemprop="datePublished">2022-04-28</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/python/" rel="tag">python</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>有时候做题misc需要看图片里的文字，比较费眼，遂使用脚本。<br>主要参考：  ZackSock<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/ZackSock/article/details/106172878">https://blog.csdn.net/ZackSock/article/details/106172878</a></p>
+<h2 id="安装-Tesseract"><a href="#安装-Tesseract" class="headerlink" title="安装 Tesseract"></a>安装 Tesseract</h2><h3 id="下载及配置"><a href="#下载及配置" class="headerlink" title="下载及配置"></a>下载及配置</h3><p>下载链接：<a target="_blank" rel="noopener" href="https://digi.bib.uni-mannheim.de/tesseract/">https://digi.bib.uni-mannheim.de/tesseract/</a><br>一般比较新的就可以。我下载的是这个。</p>
+<p><img src="/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/2022-04-28-16-47-21.png"><br> 在环境变量中配置</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">属性-&gt;高级系统设置-&gt;环境变量-&gt;系统变量-&gt;Path-&gt;编辑-&gt;新建</span><br></pre></td></tr></table></figure>
+<p>把安装的路径放进去即可。<br><img src="/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/2022-04-28-16-54-46.png"></p>
+<h3 id="语言包"><a href="#语言包" class="headerlink" title="语言包"></a>语言包</h3><p>Tesseract默认是不支持中文的，如果想要识别中文或者其它语言需要下载相应的语言包，下载地址如下： <a target="_blank" rel="noopener" href="https://tesseract-ocr.github.io/tessdoc/Data-Files">https://tesseract-ocr.github.io/tessdoc/Data-Files</a><br>下载完成后放到Tesseract的路径下的tessdata目录下。</p>
+<h3 id="安装其他库"><a href="#安装其他库" class="headerlink" title="安装其他库"></a>安装其他库</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pip install pytesseract</span><br><span class="line">pip install pillow</span><br></pre></td></tr></table></figure>
+<h2 id="识别图片示例"><a href="#识别图片示例" class="headerlink" title="识别图片示例"></a>识别图片示例</h2><p>目前测试的主流图片格式都可以，像png、bmp等</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pytesseract</span><br><span class="line"><span class="keyword">from</span> PIL <span class="keyword">import</span> Image</span><br><span class="line"><span class="comment"># 读取图片</span></span><br><span class="line">im = Image.<span class="built_in">open</span>(<span class="string">&#x27;sentence.jpg&#x27;</span>)</span><br><span class="line"><span class="comment"># 识别文字</span></span><br><span class="line">string = pytesseract.image_to_string(im)</span><br><span class="line"><span class="built_in">print</span>(string)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Tesseract"><span class="toc-number">1.</span> <span class="toc-text">安装 Tesseract</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E5%8F%8A%E9%85%8D%E7%BD%AE"><span class="toc-number">1.1.</span> <span class="toc-text">下载及配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AD%E8%A8%80%E5%8C%85"><span class="toc-number">1.2.</span> <span class="toc-text">语言包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%85%B6%E4%BB%96%E5%BA%93"><span class="toc-number">1.3.</span> <span class="toc-text">安装其他库</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%86%E5%88%AB%E5%9B%BE%E7%89%87%E7%A4%BA%E4%BE%8B"><span class="toc-number">2.</span> <span class="toc-text">识别图片示例</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&text=python3 配置提取图片文字环境"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&is_video=false&description=python3 配置提取图片文字环境"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=python3 配置提取图片文字环境&body=Check out this article: http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&title=python3 配置提取图片文字环境"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&name=python3 配置提取图片文字环境&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/28/python3-%E9%85%8D%E7%BD%AE%E6%8F%90%E5%8F%96%E5%9B%BE%E7%89%87%E6%96%87%E5%AD%97%E7%8E%AF%E5%A2%83/&t=python3 配置提取图片文字环境"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
