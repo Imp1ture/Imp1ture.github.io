@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="基于密码的认证Username enumeration via different responses，独立报错用户名&#x2F;密码 独立报错。先爆破用户名，在爆破密码。 Username enumeration via subtly different responses，返回内容差别根据细微之处的差别判断。我们可以思考，如果后端逻辑是先判断用户名是否存在，根据结果返回或者继续判断密码在返回，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Portswigger靶场-2-authentication">
+<meta property="og:url" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/index.html">
+<meta property="og:site_name" content="Imp1ture">
+<meta property="og:description" content="基于密码的认证Username enumeration via different responses，独立报错用户名&#x2F;密码 独立报错。先爆破用户名，在爆破密码。 Username enumeration via subtly different responses，返回内容差别根据细微之处的差别判断。我们可以思考，如果后端逻辑是先判断用户名是否存在，根据结果返回或者继续判断密码在返回，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-06-08-32-40.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-06-17-30-24.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-06-20-13-24.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-09-19-45-42.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-10-22-44-13.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-10-22-47-52.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-10-22-50-19.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-10-22-52-53.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-11-23-18-01.png">
+<meta property="og:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-11-23-19-20.png">
+<meta property="article:published_time" content="2022-07-05T13:42:27.000Z">
+<meta property="article:modified_time" content="2022-07-19T14:43:53.476Z">
+<meta property="article:author" content="Imp1ture">
+<meta property="article:tag" content="burpsuite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-06-08-32-40.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Portswigger靶场-2-authentication</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/06/18/BUUCTF-MISIC-%E5%88%B7%E9%A2%98%E7%AC%94%E8%AE%B0-03/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&text=Portswigger靶场-2-authentication"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&is_video=false&description=Portswigger靶场-2-authentication"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Portswigger靶场-2-authentication&body=Check out this article: http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&name=Portswigger靶场-2-authentication&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&t=Portswigger靶场-2-authentication"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E5%AF%86%E7%A0%81%E7%9A%84%E8%AE%A4%E8%AF%81"><span class="toc-number">1.</span> <span class="toc-text">基于密码的认证</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Username-enumeration-via-different-responses%EF%BC%8C%E7%8B%AC%E7%AB%8B%E6%8A%A5%E9%94%99"><span class="toc-number">1.1.</span> <span class="toc-text">Username enumeration via different responses，独立报错</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Username-enumeration-via-subtly-different-responses%EF%BC%8C%E8%BF%94%E5%9B%9E%E5%86%85%E5%AE%B9%E5%B7%AE%E5%88%AB"><span class="toc-number">1.2.</span> <span class="toc-text">Username enumeration via subtly different responses，返回内容差别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Username-enumeration-via-response-timing%EF%BC%8C%E8%BF%94%E5%9B%9E%E6%97%B6%E9%97%B4%E5%B7%AE%E5%88%AB%EF%BC%8C%E9%99%90%E5%88%B6IP"><span class="toc-number">1.3.</span> <span class="toc-text">Username enumeration via response timing，返回时间差别，限制IP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Broken-brute-force-protection-IP-block%EF%BC%8C%E6%AD%A3%E7%A1%AE%E7%94%A8%E6%88%B7%E5%90%8D%E5%AF%86%E7%A0%81%E8%A7%A3%E7%A6%81IP"><span class="toc-number">1.4.</span> <span class="toc-text">Broken brute-force protection, IP block，正确用户名密码解禁IP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sername-enumeration-via-account-lock%EF%BC%8C%E5%88%A9%E7%94%A8%E7%94%A8%E6%88%B7%E5%AD%98%E5%9C%A8%E5%88%99%E5%A4%9A%E6%AC%A1%E5%AF%86%E7%A0%81%E9%94%99%E8%AF%AF%E5%B0%81%E7%A6%81"><span class="toc-number">1.5.</span> <span class="toc-text">sername enumeration via account lock，利用用户存在则多次密码错误封禁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Broken-brute-force-protection-multiple-credentials-per-request%EF%BC%8C%E4%BD%BF%E7%94%A8%E6%95%B0%E7%BB%84%E7%BB%95%E8%BF%87%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%A3%80%E6%9F%A5"><span class="toc-number">1.6.</span> <span class="toc-text">Broken brute-force protection, multiple credentials per request，使用数组绕过字符串检查</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A4%9A%E5%9B%A0%E7%B4%A0%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81"><span class="toc-number">2.</span> <span class="toc-text">多因素身份验证</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2FA-simple-bypass-%E9%80%BB%E8%BE%91%E9%94%99%E8%AF%AF%EF%BC%8C%E5%8F%AF%E7%9B%B4%E6%8E%A5%E8%AE%BF%E9%97%AE%E6%88%90%E5%8A%9F%E7%99%BB%E9%99%86%E9%A1%B5%E9%9D%A2"><span class="toc-number">2.1.</span> <span class="toc-text">2FA simple bypass 逻辑错误，可直接访问成功登陆页面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2FA-broken-logic-cookie-%E7%AE%80%E5%8D%95%E5%8A%A0%E5%AF%86%EF%BC%8C%E7%88%86%E7%A0%B4"><span class="toc-number">2.2.</span> <span class="toc-text">2FA broken logic cookie 简单加密，爆破</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2FA-bypass-using-a-brute-force-attack-%E7%BB%84%E5%90%88%E5%AE%8F%E7%88%86%E7%A0%B4%EF%BC%8C%E9%80%82%E7%94%A8%E4%B8%8D%E9%99%90%E5%88%B6IP%EF%BC%8C%E9%99%90%E5%88%B6%E5%B0%9D%E8%AF%95%E6%AC%A1%E6%95%B0"><span class="toc-number">2.3.</span> <span class="toc-text">2FA bypass using a brute-force attack 组合宏爆破，适用不限制IP，限制尝试次数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Brute-forcing-a-stay-logged-in-cookie-%E7%AE%80%E5%8D%95%E7%88%86%E7%A0%B4cookie"><span class="toc-number">2.4.</span> <span class="toc-text">Brute-forcing a stay-logged-in cookie 简单爆破cookie</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Offline-password-cracking-%E5%88%A9%E7%94%A8xss%E8%8E%B7%E5%8F%96%E7%94%A8%E6%88%B7cookie%E5%B9%B6%E8%A7%A3%E5%AF%86cookie"><span class="toc-number">2.5.</span> <span class="toc-text">Offline password cracking 利用xss获取用户cookie并解密cookie</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Portswigger靶场-2-authentication
+    </h1>
+
+
+
+	
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Imp1ture</span>
+      </span>
+	  <!--Leancloud 阅读量-->
+	  
+	<span id="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/" class="leancloud-visitors" data-flag-title="Portswigger靶场-2-authentication">
+		<em class="post-meta-item-text">阅读量</em>
+		<i class="leancloud-visitors-count">loading</i>
+	</span>
+
+
+
+	  
+	  <!--Leancloud 阅读量-->
+	  
+      
+    <div class="postdate">
+      
+        <time datetime="2022-07-05T13:42:27.000Z" itemprop="datePublished">2022-07-05</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/burpsuite/" rel="tag">burpsuite</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h1 id="基于密码的认证"><a href="#基于密码的认证" class="headerlink" title="基于密码的认证"></a>基于密码的认证</h1><h2 id="Username-enumeration-via-different-responses，独立报错"><a href="#Username-enumeration-via-different-responses，独立报错" class="headerlink" title="Username enumeration via different responses，独立报错"></a>Username enumeration via different responses，独立报错</h2><p>用户名&#x2F;密码 独立报错。先爆破用户名，在爆破密码。</p>
+<h2 id="Username-enumeration-via-subtly-different-responses，返回内容差别"><a href="#Username-enumeration-via-subtly-different-responses，返回内容差别" class="headerlink" title="Username enumeration via subtly different responses，返回内容差别"></a>Username enumeration via subtly different responses，返回内容差别</h2><p>根据细微之处的差别判断。我们可以思考，如果后端逻辑是先判断用户名是否存在，根据结果返回或者继续判断密码在返回，那么不同的阶段返回错误可能会有细微的差距，进而根据细微的差距爆破用户名和密码。</p>
+<h2 id="Username-enumeration-via-response-timing，返回时间差别，限制IP"><a href="#Username-enumeration-via-response-timing，返回时间差别，限制IP" class="headerlink" title="Username enumeration via response timing，返回时间差别，限制IP"></a>Username enumeration via response timing，返回时间差别，限制IP</h2><p>限制IP：使用 X-Forwarded-For头</p>
+<p>根据返回时间判断用户名密码。</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-06-08-32-40.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">columns中的</span><br><span class="line">Response received  收到的时间</span><br><span class="line">Response completed 完成时间</span><br></pre></td></tr></table></figure>
+<h2 id="Broken-brute-force-protection-IP-block，正确用户名密码解禁IP"><a href="#Broken-brute-force-protection-IP-block，正确用户名密码解禁IP" class="headerlink" title="Broken brute-force protection, IP block，正确用户名密码解禁IP"></a>Broken brute-force protection, IP block，正确用户名密码解禁IP</h2><p>主要在建立新的线程池，以及建立交替的用户名密码。</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-06-17-30-24.png"></p>
+<h2 id="sername-enumeration-via-account-lock，利用用户存在则多次密码错误封禁"><a href="#sername-enumeration-via-account-lock，利用用户存在则多次密码错误封禁" class="headerlink" title="sername enumeration via account lock，利用用户存在则多次密码错误封禁"></a>sername enumeration via account lock，利用用户存在则多次密码错误封禁</h2><p>使用cluster bomb 模式，每个用户名设置4个密码，集束攻击之后排列返回长度进而得到正确用户名，再次使用真假用户名交叉方式刷新相同用户名封禁，进而爆破用户密码。记得线程设置为1。</p>
+<h2 id="Broken-brute-force-protection-multiple-credentials-per-request，使用数组绕过字符串检查"><a href="#Broken-brute-force-protection-multiple-credentials-per-request，使用数组绕过字符串检查" class="headerlink" title="Broken brute-force protection, multiple credentials per request，使用数组绕过字符串检查"></a>Broken brute-force protection, multiple credentials per request，使用数组绕过字符串检查</h2><p>猜测原理是后台检查语句的逻辑漏洞。但是这点官网也没有进行原理讲解，有点烦。</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-06-20-13-24.png"></p>
+<h1 id="多因素身份验证"><a href="#多因素身份验证" class="headerlink" title="多因素身份验证"></a>多因素身份验证</h1><h2 id="2FA-simple-bypass-逻辑错误，可直接访问成功登陆页面"><a href="#2FA-simple-bypass-逻辑错误，可直接访问成功登陆页面" class="headerlink" title="2FA simple bypass 逻辑错误，可直接访问成功登陆页面"></a>2FA simple bypass 逻辑错误，可直接访问成功登陆页面</h2><p>逻辑错误，可以直接访问成功页面。<br>步骤：</p>
+<ul>
+<li>登录wiener:peter，并访问邮箱页面端，输入认证码认证邮箱。获得认证成功页面。其url为<code>https://0ac100e30314efb6c02ddb8b000200e1.web-security-academy.net/my-account?id=wiener</code>.</li>
+<li>推出wiener登录calus，进入验证码界面，把url改成上一步获得的验证成功url，同时修改对应的用户名参数即可，<code>https://0ac100e30314efb6c02ddb8b000200e1.web-security-academy.net/my-account?id=carlos</code></li>
+</ul>
+<p>这是逻辑漏洞，即获取验证码需要的验证和用户本身的令牌一样，或者互通。</p>
+<h2 id="2FA-broken-logic-cookie-简单加密，爆破"><a href="#2FA-broken-logic-cookie-简单加密，爆破" class="headerlink" title="2FA broken logic cookie 简单加密，爆破"></a>2FA broken logic cookie 简单加密，爆破</h2><p>整个流程，使用已知账号密码来登录，获取获取验证码的cookie，修改cookie中的用户名为carlos，触发邮箱验证，再利用wiener验证邮箱的post请求，爆破邮箱验证。<br>整个就是逻辑错误，以及cookie验证不严谨。应该把cookie和用户名进行某种加密联系。以及发送邮箱验证码不能只看一个用户名。</p>
+<p>get： brute forcer可以设置定长定范围的组合payload</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-09-19-45-42.png"></p>
+<h2 id="2FA-bypass-using-a-brute-force-attack-组合宏爆破，适用不限制IP，限制尝试次数"><a href="#2FA-bypass-using-a-brute-force-attack-组合宏爆破，适用不限制IP，限制尝试次数" class="headerlink" title="2FA bypass using a brute-force attack 组合宏爆破，适用不限制IP，限制尝试次数"></a>2FA bypass using a brute-force attack 组合宏爆破，适用不限制IP，限制尝试次数</h2><p>这个是输入两次验证码就会被封禁，需要重新登录。学习的是这种组合爆破，暂且这样命名吧。</p>
+<p>添加Session handling rules，点击 add</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-10-22-44-13.png"></p>
+<p>在Session handling rules editor的scope中选择include all urls</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-10-22-47-52.png"></p>
+<p>在Session handling rules editor的detalis中add一个run a macro(宏指令)，</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-10-22-50-19.png"></p>
+<p>然后在select macro 点击add选择要重放的宏，也就是每次intruder之前先发送的内容</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-10-22-52-53.png"></p>
+<p>比如我们需要重放的是邮件验证码，假如是post2，但是这之前需要准备访问get1，登录post1，这时候我们就需要在这个select macro 点击add添加get1和post1，也就是每次intruder重放一个包post2，宏就会提前重放一次get1和post1作准备。也就是我们可以爆破有输入次数限制的验证，或者称之为组合爆破。</p>
+<h2 id="Brute-forcing-a-stay-logged-in-cookie-简单爆破cookie"><a href="#Brute-forcing-a-stay-logged-in-cookie-简单爆破cookie" class="headerlink" title="Brute-forcing a stay-logged-in cookie 简单爆破cookie"></a>Brute-forcing a stay-logged-in cookie 简单爆破cookie</h2><p>简单爆破cookie，主要学到这个流程</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-11-23-18-01.png"></p>
+<p>主要还是这个payload process，如果是单因素的话，就可以add选择要进行的操作</p>
+<p><img src="/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/2022-07-11-23-19-20.png"></p>
+<p>点击add之后，会有很多的选项。单点加密的话，单线流程加密即可。如果一个cookie中有两个点需要hash但是要组合后再进行base64，这就无法使用这个方式了，就需要使用脚本了。</p>
+<h2 id="Offline-password-cracking-利用xss获取用户cookie并解密cookie"><a href="#Offline-password-cracking-利用xss获取用户cookie并解密cookie" class="headerlink" title="Offline password cracking 利用xss获取用户cookie并解密cookie"></a>Offline password cracking 利用xss获取用户cookie并解密cookie</h2><p>利用xss盗取目标cookie发送到我们的预备机器，进而分析cookie的格式，解密cookie，再进行重放攻击。进而登录。<br>还是需要补一下xss的知识，不能只停留在弹窗，要能获取一些敏感信息。</p>
+<p>暂停这个系列一阵子。</p>
+
+  </div>
+</article>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">文章</a></li>
+         
+          <li><a href="/tags/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E5%AF%86%E7%A0%81%E7%9A%84%E8%AE%A4%E8%AF%81"><span class="toc-number">1.</span> <span class="toc-text">基于密码的认证</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Username-enumeration-via-different-responses%EF%BC%8C%E7%8B%AC%E7%AB%8B%E6%8A%A5%E9%94%99"><span class="toc-number">1.1.</span> <span class="toc-text">Username enumeration via different responses，独立报错</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Username-enumeration-via-subtly-different-responses%EF%BC%8C%E8%BF%94%E5%9B%9E%E5%86%85%E5%AE%B9%E5%B7%AE%E5%88%AB"><span class="toc-number">1.2.</span> <span class="toc-text">Username enumeration via subtly different responses，返回内容差别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Username-enumeration-via-response-timing%EF%BC%8C%E8%BF%94%E5%9B%9E%E6%97%B6%E9%97%B4%E5%B7%AE%E5%88%AB%EF%BC%8C%E9%99%90%E5%88%B6IP"><span class="toc-number">1.3.</span> <span class="toc-text">Username enumeration via response timing，返回时间差别，限制IP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Broken-brute-force-protection-IP-block%EF%BC%8C%E6%AD%A3%E7%A1%AE%E7%94%A8%E6%88%B7%E5%90%8D%E5%AF%86%E7%A0%81%E8%A7%A3%E7%A6%81IP"><span class="toc-number">1.4.</span> <span class="toc-text">Broken brute-force protection, IP block，正确用户名密码解禁IP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#sername-enumeration-via-account-lock%EF%BC%8C%E5%88%A9%E7%94%A8%E7%94%A8%E6%88%B7%E5%AD%98%E5%9C%A8%E5%88%99%E5%A4%9A%E6%AC%A1%E5%AF%86%E7%A0%81%E9%94%99%E8%AF%AF%E5%B0%81%E7%A6%81"><span class="toc-number">1.5.</span> <span class="toc-text">sername enumeration via account lock，利用用户存在则多次密码错误封禁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Broken-brute-force-protection-multiple-credentials-per-request%EF%BC%8C%E4%BD%BF%E7%94%A8%E6%95%B0%E7%BB%84%E7%BB%95%E8%BF%87%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%A3%80%E6%9F%A5"><span class="toc-number">1.6.</span> <span class="toc-text">Broken brute-force protection, multiple credentials per request，使用数组绕过字符串检查</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A4%9A%E5%9B%A0%E7%B4%A0%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81"><span class="toc-number">2.</span> <span class="toc-text">多因素身份验证</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2FA-simple-bypass-%E9%80%BB%E8%BE%91%E9%94%99%E8%AF%AF%EF%BC%8C%E5%8F%AF%E7%9B%B4%E6%8E%A5%E8%AE%BF%E9%97%AE%E6%88%90%E5%8A%9F%E7%99%BB%E9%99%86%E9%A1%B5%E9%9D%A2"><span class="toc-number">2.1.</span> <span class="toc-text">2FA simple bypass 逻辑错误，可直接访问成功登陆页面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2FA-broken-logic-cookie-%E7%AE%80%E5%8D%95%E5%8A%A0%E5%AF%86%EF%BC%8C%E7%88%86%E7%A0%B4"><span class="toc-number">2.2.</span> <span class="toc-text">2FA broken logic cookie 简单加密，爆破</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2FA-bypass-using-a-brute-force-attack-%E7%BB%84%E5%90%88%E5%AE%8F%E7%88%86%E7%A0%B4%EF%BC%8C%E9%80%82%E7%94%A8%E4%B8%8D%E9%99%90%E5%88%B6IP%EF%BC%8C%E9%99%90%E5%88%B6%E5%B0%9D%E8%AF%95%E6%AC%A1%E6%95%B0"><span class="toc-number">2.3.</span> <span class="toc-text">2FA bypass using a brute-force attack 组合宏爆破，适用不限制IP，限制尝试次数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Brute-forcing-a-stay-logged-in-cookie-%E7%AE%80%E5%8D%95%E7%88%86%E7%A0%B4cookie"><span class="toc-number">2.4.</span> <span class="toc-text">Brute-forcing a stay-logged-in cookie 简单爆破cookie</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Offline-password-cracking-%E5%88%A9%E7%94%A8xss%E8%8E%B7%E5%8F%96%E7%94%A8%E6%88%B7cookie%E5%B9%B6%E8%A7%A3%E5%AF%86cookie"><span class="toc-number">2.5.</span> <span class="toc-text">Offline password cracking 利用xss获取用户cookie并解密cookie</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&text=Portswigger靶场-2-authentication"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&is_video=false&description=Portswigger靶场-2-authentication"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Portswigger靶场-2-authentication&body=Check out this article: http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&title=Portswigger靶场-2-authentication"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&name=Portswigger靶场-2-authentication&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/05/Portswigger%E9%9D%B6%E5%9C%BA-2-authentication/&t=Portswigger靶场-2-authentication"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Imp1ture
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">文章</a></li><!--
+     --><!--
+       --><li><a href="/tags/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
